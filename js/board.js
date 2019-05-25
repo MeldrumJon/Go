@@ -76,8 +76,6 @@ export default class Board {
 		this.player = player;
 		this.online = online;
 		this.callbacks = callbacks;
-		console.log(this.online);
-		console.log(this.player);
 
 		let gui = (size === 9) ? GUI_BOARD9 : (size === 13) ? GUI_BOARD13 : GUI_BOARD19;
 

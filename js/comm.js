@@ -18,6 +18,7 @@ function _isFct(f) {
  * peer so that they can connect.
  * 
  * @param {Object} cbs The callbacks object may contain the following functions:
+ * @param {String} pID If given, the peer ID to connect to.
  * {
  * 	wait: function(myID) { ... }
  *   	  // Called if a peer ID was not supplied for connection and we are

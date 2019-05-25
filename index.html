@@ -6,7 +6,7 @@
 	<title>Go</title>
 	<link href="style.css" rel="stylesheet">
 	<script src="https://unpkg.com/peerjs@1.0.0/dist/peerjs.min.js" defer></script>
-	<script src="lib/weiqi.js" defer></script>
+	<script src="lib/weiqijs/weiqi.js" defer></script>
 	<script type="module" src="js/app.js" defer></script>
 </head>
 
@@ -27,6 +27,12 @@
 	<div id="shade">
 		<div id="online_or_local" class="modal">
 			<div class="modal_border">
+				<h2>Board Size</h2>
+				<select id="board_size">
+					<option value="19" selected>19 x 19</option>
+					<option value="13">13 x 13</option>
+					<option value="9">9 x 9</option>
+				</select>
 				<h2>Play locally or against online friend?</h2>
 				<a href="#" id="play_online" class="big_button">Online</a>
 				<a href="#" id="play_local" class="big_button">Local</a>

@@ -32,7 +32,9 @@ function PeerID2URL(id) {
 	return url;
 }
 
-function setup(online = 'false', player = 'black') {
+function setup(size, online = 'false', player = 'black') {
+	console.log(size);
+
 	const container = document.getElementById('board');
 	const turnArea = document.getElementById('turn_area');
 	const passBtn = document.getElementById('pass_btn');
@@ -56,7 +58,7 @@ function setup(online = 'false', player = 'black') {
 			turnArea.innerHTML = 'Gameover. Black: ' + score.black + '. White: ' + score.white + '.';
 		}
 	}
-	board = new Board(container, 9, callbacks, online, player);
+	board = new Board(container, size, callbacks, online, player);
 
 	passBtn.onclick = function () {
 		board.pass(board.player);
@@ -71,6 +73,8 @@ function setup(online = 'false', player = 'black') {
 }
 
 function main() {
+	const boardSize = document.getElementById('board_size');
+
 	let callbacks = {
 		'wait': (id) => {
 			const shareURLEl = document.getElementById('share_url');
@@ -78,14 +82,15 @@ function main() {
 			console.log('Have peer connect to: ' + PeerID2URL(id));
 		},
 		'mst_connected': () => {
+			let size = parseInt(boardSize.value);
+			comm.send('Start', size)
 			console.log('Peer connected');
-			setup(true, 'black');
 			fsm('CONNECTED');
+			setup(size, true, 'black');
 		},
-		'slv_connected': () => {
-			console.log('Peer connected');
-			setup(true, 'white');
-			fsm('CONNECTED');
+		'slv_connected': (metadata) => {
+			console.log('Peer connected', metadata);
+			// Wait for start signal
 		},
 		'disconnected': () => {
 			console.log('Peer disconnected')
@@ -93,11 +98,17 @@ function main() {
 		}
 	};
 	var peerID = URL2PeerID();
-	comm.init(callbacks, peerID);
 
 	if (peerID !== null) {
+		comm.init(callbacks, peerID);
 		fsm('INIT_PEER');
+
+		comm.addReceiveHandler('Start', (data) => {
+			fsm('CONNECTED');
+			setup(data, true, 'white');
+		});
 	} else {
+		comm.init(callbacks);
 		fsm('INIT_HOST');
 	}
 
@@ -107,7 +118,7 @@ function main() {
 		fsm('ONLINE');
 	}
 	playLocalEl.onclick = function () {
-		setup(false, 'black');
+		setup(parseInt(boardSize.value), false, 'black');
 		fsm('LOCAL');
 	}
 
