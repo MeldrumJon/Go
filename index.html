@@ -1,16 +1,59 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="UTF-8">
-		<title>Go</title>
-		<link href="style.css" rel="stylesheet">
-		<script src="lib/weiqi.js" defer></script>
-		<script type="module" src="js/app.js" defer></script>
-	</head>
-	<body>
-		<h1>Go</h1>
-		<div id="wrap">
-			<div id="board" style="width:487px; height:487px;">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Go</title>
+	<link href="style.css" rel="stylesheet">
+	<script src="https://unpkg.com/peerjs@1.0.0/dist/peerjs.min.js" defer></script>
+	<script src="lib/weiqi.js" defer></script>
+	<script type="module" src="js/app.js" defer></script>
+</head>
+
+<body>
+	<h1>Go</h1>
+	<div id="wrap">
+		<div id="turn_area">
+			Black to move.
 		</div>
-	</body>
+
+		<div id="board" style="width:487px; height:487px;"></div>
+
+		<div id="pass_area">
+			<button id="pass_btn">Pass</button>
+		</div>
+	</div>
+
+	<div id="shade">
+		<div id="online_or_local" class="modal">
+			<div class="modal_border">
+				<h2>Play locally or against online friend?</h2>
+				<a href="#" id="play_online" class="big_button">Online</a>
+				<a href="#" id="play_local" class="big_button">Local</a>
+			</div>
+		</div>
+		<div id="show_url" class="modal">
+			<div class="modal_border">
+				<h2>Share this link with a friend:</h2>
+				<div class="input_area">
+					<div id="share_url" class="info"></div>
+					<a id="copy_btn" role="button" href="#">Copy</a>
+				</div>
+			</div>
+		</div>
+		<div id="wait_for_connection" class="modal">
+			<div class="modal_border">
+				<h2>Connecting...</h2>
+				<p>Please wait while connecting to peer.</p>
+			</div>
+		</div>
+		<div id="disconnected" class="modal">
+			<div class="modal_border">
+				<h2>Disconnected.</h2>
+				<p>Your peer has disconnected.</p>
+			</div>
+		</div>
+	</div>
+</body>
+
 </html>
