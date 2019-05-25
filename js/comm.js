@@ -33,7 +33,7 @@ function _isFct(f) {
  *                // Called when the two peers are disconnected:
  * }
  */
-function init(cbs, pID) {
+function init(cbs, pID=null) {
 	console.log('Connecting to Peer server.');
 	peerID = pID;
 	_peer = new Peer();
