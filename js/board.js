@@ -20,9 +20,9 @@ const GUI_BOARD13 = {
 
 const GUI_BOARD9 = {
 	image: 'res/board9x9.svg',
-	spacing: 55,
-	start_x: 23,
-	start_y: 23
+	spacing: 50,
+	start_x: 42,
+	start_y: 42
 }
 
 function img_hoverstart(img, board, x, y) {
