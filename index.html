@@ -11,16 +11,22 @@
 </head>
 
 <body>
-	<h1>Go</h1>
 	<div id="wrap">
-		<div id="turn_area">
-			Black to move.
+		<div id="top_options">
+			<div class="left_area"></div>
+			<h1>Go</h1>
+			<div class="right_area"></div>
 		</div>
 
 		<div id="board" style="width:487px; height:487px;"></div>
 
-		<div id="pass_area">
-			<button id="pass_btn">Pass</button>
+		<div id="bottom_options">
+			<div class="left_area" id="turn">
+				Black to move.
+			</div>
+			<div class="right_area">
+				<input type="button" class="button" value="Pass" id="pass_btn">
+			</div>
 		</div>
 	</div>
 
@@ -28,14 +34,21 @@
 		<div id="online_or_local" class="modal">
 			<div class="modal_border">
 				<h2>Board Size</h2>
-				<select id="board_size">
-					<option value="19" selected>19 x 19</option>
-					<option value="13">13 x 13</option>
-					<option value="9">9 x 9</option>
-				</select>
-				<h2>Play locally or against online friend?</h2>
-				<a href="#" id="play_online" class="big_button">Online</a>
-				<a href="#" id="play_local" class="big_button">Local</a>
+				<div class="switch-field">
+					<input type="radio" id="board_size_9" name="board_size" value="9" />
+					<label for="board_size_9">9 x 9</label>
+					<input type="radio" id="board_size_13" name="board_size" value="13" />
+					<label for="board_size_13">13 x 13</label>
+					<input type="radio" id="board_size_19" name="board_size" value="19" checked/>
+					<label for="board_size_19">19 x 19</label>
+				</div>
+
+				<h2>Play against online friend or locally?</h2>
+				<div id="choice_area">
+					<a href="#" id="play_online" class="big_button">Online Game</a>
+					 <span class="or_sep">or</span> 
+					<a href="#" id="play_local" class="big_button">Local Game</a>
+				</div>
 			</div>
 		</div>
 		<div id="show_url" class="modal">

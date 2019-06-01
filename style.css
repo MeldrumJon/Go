@@ -4,22 +4,46 @@
 }
 
 body {
-	background: #e9e9e9;
-	font: normal normal normal 14px/1 Verdana, Geneva, sans-serif
+	font: normal normal normal 16px/1 "Palatino Linotype", "Book Antiqua", Palatino, serif;
+	color: #000;
+	background: #fff;
 }
 
-h1 {
-	background: #fff;
-	font-size: 1.2rem;
-	padding: 0.4rem;
+#top_options {
+	margin: 0.8rem 0;
+	display: flex;
+	flex-direction: row;
+}
+#top_options .left_area {
+	text-align: left;
+	flex:1;
+}
+#top_options .right_area {
+	text-align: right;
+	flex: 1;
+}
+#top_options h1 {
+	font-size: 1.1rem;
 	text-align: center;
+}
+
+#bottom_options {
+	margin-top: 0.8rem;
+	display: flex;
+}
+#bottom_options .left_area {
+	flex: 1;
+	text-align: left;
+}
+#bottom_options .right_area {
+	flex: 1;
+	text-align: right;
 }
 
 #wrap {
 	width: fit-content;
 	margin: 0 auto;
 	text-align: center;
-	padding: 0.8rem;
 }
 
 #turn_area {
@@ -29,24 +53,17 @@ h1 {
 
 #board {
 	display: inline-block;
-	background-color: #F4B573;
-	border: 1px solid #715332;
+	background-color: #D7BFA0;
 	position: relative;
-}
-
-#pass_area {
-	text-align: right;
-	padding: 0.4rem 0;
-}
-#pass_btn {
-	padding: 0.1rem;
+	border: 1px solid #777;
+	border: 1px solid #777;
 }
 
 
 
 #shade {
-	transition: opacity linear 0.25s;
-	background: rgba(0, 0, 0, 0.6);
+	transition: opacity linear 0.5s;
+	background: rgba(0, 0, 0, 0.3);
 	position: fixed; /* Relative to view port (If user scrolls, we want the window to still be centered) */
 	top: 0;
 	bottom: 0;
@@ -55,6 +72,7 @@ h1 {
 	/* Show Shade Normally */
 	opacity: 1;
 	z-index: 10;
+
 }
 
 .modal {
@@ -64,8 +82,7 @@ h1 {
 	left: 50%;
 	transform: translate(-50%, -50%);
 	background: #fff;
-	min-width: 400px;
-	/* box-shadow: rgba(0, 0, 0, 0.3) 0 0 40px; */
+	box-shadow: rgba(0, 0, 0, 0.3) 7px 7px 12px;
 	/* Hide modal windows normally */
 	z-index: -10;
 	opacity: 0;
@@ -73,7 +90,7 @@ h1 {
 }
 
 .modal_border {
-	border: solid 2px #000;
+	border: #777 1px solid;
 	padding: 1rem;
 }
 
@@ -88,24 +105,74 @@ h2:first-child {
 	margin: 0 0 1.3rem 0;
 }
 
+.switch-field {
+	overflow: hidden;
+	text-align: center
+}
+
+.switch-field input {
+	position: absolute !important;
+	clip: rect(0, 0, 0, 0);
+	height: 1px;
+	width: 1px;
+	border: 0;
+	overflow: hidden;
+}
+
+.switch-field label {
+	display: inline-block;
+	background: #6B7A8F;
+	color: #fff;
+	font-size: 1.2rem;
+	text-align: center;
+	font-weight: bold;
+	text-decoration: none;
+	padding: 0.4em;
+	margin: 0 1rem;
+	border: 2px #6B7A8F solid;
+}
+
+.switch-field label:hover {
+	cursor: pointer;
+	background:#6B7A8F;
+	border: 2px #F7C331 solid;
+}
+
+.switch-field input:checked + label {
+	background:#F7882F;
+	border: 2px #F7882F solid;
+}
+
+#choice_area{
+	text-align: center;
+}
+
+.or_sep {
+	text-transform: lowercase;
+	margin: 0 1.5rem;
+	vertical-align: middle;
+	display: inline-block;
+}
+
 a.big_button {
-	display: block;
+	display: inline-block;
+	vertical-align: middle;
 	font-size: 1.2rem;
 	text-align: center;
 	font-weight: bold;
 	text-decoration: none;
 	padding: 0.4em;
 	margin-top: 0.2em;
-	background: #654D30;
+	background: #6B7A8F;
 	color: #fff;
-	border: 2px #654D30 solid;
+	border: 2px #6B7A8F solid;
 }
 a.big_button:hover {
-	background:#be0007;
-	border: 2px #be0007 solid;
+	background:#F7882F;
+	border: 2px #F7882F solid;
 }
 a.big_button:active {
-	border: 2px #210ec8 solid;
+	border: 2px #F7C331 solid;
 }
 
 .modal .input_area {
@@ -115,7 +182,7 @@ a.big_button:active {
 	flex: 1;
 	padding: 0.5rem;
 	font-size: 1rem;
-	border: solid 1px #999;
+	border: solid 1px #777;
 	border-right: none;
 	text-align: center;
 }
@@ -127,26 +194,34 @@ a.big_button:active {
 	padding: 0.2rem 1rem;
 	font-size: 1.2rem;
 	border: none;
-	background: #654D30;
+	background: #6B7A8F;
 	color: #fff;
-	border: 2px #654D30 solid;
+	border: 2px #6B7A8F solid;
 	font-weight: bold;
 	text-decoration: none;
 }
 .modal .input_area a:hover {
-	background:#be0007;
-	border: 2px #be0007 solid;
+	background:#F7882F;
+	border: 2px #F7882F solid;
 }
 .modal .input_area a:active {
-	border: 2px #210ec8 solid;
+	border: 2px #F7C331 solid;
 }
 
 
 /* When to hide the shade */
 body.game #shade {
-	transition: opacity linear 0.25s;
+	transition: opacity linear 0.5s;
 	z-index: -20;
 	opacity: 0;
+}
+
+#wrap {
+	visibility: hidden;
+}
+body.game #wrap,
+body.disconnected #wrap {
+	visibility: visible;
 }
 
 body.online_or_local #online_or_local,

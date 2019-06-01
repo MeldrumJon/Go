@@ -1,8 +1,36 @@
 import * as comm from './comm.js'
 
+var gameTitle = 'Go';
+function blinkTitle(message) {
+  var intervalID = null;
+
+  function blink() {
+    document.title = document.title == message ? gameTitle : message;
+  }
+  function clear() {
+    if (intervalID !== null) {
+      clearInterval(intervalID);
+    }
+    intervalID = null;
+    document.title = gameTitle;
+    window.onmousemove = null;
+  };
+
+  clear();
+  blink();
+  intervalID = setInterval(blink, 1000);
+  window.onmousemove = function () {
+    if (document.hasFocus()) {
+      clear();
+    }
+  }
+};
+
 const VACANT_POINT_IMG = 'res/invis.png';
 const WHITE_STONE_IMG = 'res/white.svg';
-const BLACK_STONE_IMG = 'res/black.svg'
+const BLACK_STONE_IMG = 'res/black.svg';
+const WHITE_SELECTED_IMG = 'res/white_selected.svg';
+const BLACK_SELECTED_IMG = 'res/black_selected.svg';
 
 const GUI_BOARD19 = {
 	image: 'res/board19x19.svg',
@@ -65,6 +93,18 @@ export default class Board {
 				}
 			}
 		}
+
+		if (this.last_move) {
+			this.lastMove_img.style.top = this.gui.start_y - this.gui.spacing / 2 
+					+ this.gui.spacing * this.last_move.y + 'px';
+			this.lastMove_img.style.left = this.gui.start_x - this.gui.spacing / 2 + 
+					this.gui.spacing * this.last_move.x + 'px';
+			this.lastMove_img.src = (this.last_move.color === 'black') ? BLACK_SELECTED_IMG : WHITE_SELECTED_IMG;
+			this.lastMove_img.style.display = 'inline-block';
+		}
+		else {
+			this.lastMove_img.style.display = 'none';
+		}
 	}
 
 	constructor(container, size, callbacks, online = true, player = 'black') {
@@ -76,21 +116,22 @@ export default class Board {
 		this.player = player;
 		this.online = online;
 		this.callbacks = callbacks;
+		this.last_move = null;
 
-		let gui = (size === 9) ? GUI_BOARD9 : (size === 13) ? GUI_BOARD13 : GUI_BOARD19;
+		this.gui = (size === 9) ? GUI_BOARD9 : (size === 13) ? GUI_BOARD13 : GUI_BOARD19;
 
-		container.style.backgroundImage = 'url(' + gui.image + ')'
+		container.style.backgroundImage = 'url(' + this.gui.image + ')'
 
 		this.imgs = new Array(size);
 		for (let i = 0; i < this.imgs.length; ++i) {
 			this.imgs[i] = new Array(size);
 		}
 
-		let y = gui.start_y - gui.spacing / 2;
+		let y = this.gui.start_y - this.gui.spacing / 2;
 		for (let j = 0; j < size; ++j) {
-			let x = gui.start_x - gui.spacing / 2;
+			let x = this.gui.start_x - this.gui.spacing / 2;
 			for (let i = 0; i < size; ++i) {
-				let img = new Image(gui.spacing, gui.spacing);
+				let img = new Image(this.gui.spacing, this.gui.spacing);
 				img.src = VACANT_POINT_IMG;
 				img.style.position = 'absolute';
 				img.style.top = y + 'px';
@@ -109,10 +150,16 @@ export default class Board {
 				this.imgs[i][j] = img;
 				container.append(img);
 
-				x += gui.spacing;
+				x += this.gui.spacing;
 			}
-			y += gui.spacing;
+			y += this.gui.spacing;
 		}
+
+		this.lastMove_img = new Image(this.gui.spacing, this.gui.spacing);
+		this.lastMove_img.src = BLACK_SELECTED_IMG;
+		this.lastMove_img.style.position = 'absolute';
+		this.lastMove_img.style.display = 'none';
+		container.append(this.lastMove_img);
 	}
 
 	play(color, x, y) {
@@ -122,6 +169,12 @@ export default class Board {
 			console.log(e);
 			return;
 		}
+	
+		this.last_move = {
+			color: color,
+			x: x,
+			y: y
+		};
 		this._redraw();
 
 		if (!this.online) {
@@ -150,6 +203,15 @@ export default class Board {
 				this.callbacks.onGameOver();
 			}
 		}
+
+		if (this.online && color !== this.player) {
+			if (Weiqi.isOver(this.game)) {
+				blinkTitle('Gameover!');
+			}
+			else {
+				blinkTitle('Your move!');
+			}
+		}
 	}
 
 	pass(color) {
@@ -159,6 +221,9 @@ export default class Board {
 			console.log(e);
 			return;
 		}
+
+		this.last_move = null;
+		this._redraw();
 
 		if (!this.online) {
 			this.player = (this.player === 'black') ? 'white' : 'black';
@@ -184,6 +249,19 @@ export default class Board {
 				this.callbacks.onGameOver();
 			}
 		}
+
+		if (this.online && color !== this.player) {
+			if (Weiqi.isOver(this.game)) {
+				blinkTitle('Gameover!');
+			}
+			else {
+				blinkTitle('Your move!');
+			}
+		}
+	}
+
+	isGameOver() {
+		return Weiqi.isOver(this.game);
 	}
 
 	score() {

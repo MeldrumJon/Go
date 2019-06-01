@@ -32,11 +32,17 @@ function PeerID2URL(id) {
 	return url;
 }
 
+function getSelectedBoardSize() {
+	return parseInt(
+		document.querySelector('input[name="board_size"]:checked').value
+	);
+}
+
 function setup(size, online = 'false', player = 'black') {
 	console.log(size);
 
 	const container = document.getElementById('board');
-	const turnArea = document.getElementById('turn_area');
+	const turnArea = document.getElementById('turn');
 	const passBtn = document.getElementById('pass_btn');
 
 	let board;
@@ -48,14 +54,18 @@ function setup(size, online = 'false', player = 'black') {
 			turnArea.innerHTML = 'White to move.';
 		},
 		onWhitePass: () => {
-			turnArea.innerHTML = '<b>White passed.</b> Black to move.';
+			turnArea.innerHTML = 'Black to move (white passed).';
 		},
 		onBlackPass: () => {
-			turnArea.innerHTML = '<b>Black passed.</b> White to move';
+			turnArea.innerHTML = 'White to move (black passed).';
 		},
 		onGameOver: () => {
 			let score = board.score();
-			turnArea.innerHTML = 'Gameover. Black: ' + score.black + '. White: ' + score.white + '.';
+			turnArea.innerHTML = 'Black: ' + score.black + '. White: ' + score.white + '.';
+			alert(
+				'Black: ' + score.black + '\n' 
+				+ 'White: ' + score.white
+			);
 		}
 	}
 	board = new Board(container, size, callbacks, online, player);
@@ -70,10 +80,21 @@ function setup(size, online = 'false', player = 'black') {
 	comm.addReceiveHandler('Pass', (data) => {
 		board.pass(data.color);
 	});
+
+	// Alert if user might disconnect from game.
+	if (online) {
+		window.addEventListener("beforeunload", function (e) {
+		  if (board.isGameOver() || !comm.isConnected) {
+			  return undefined;
+		  }
+		  var confirmationMessage = 'If you leave the page, you will be disconnected.';
+		  (e || window.event).returnValue = confirmationMessage; //Gecko + IE
+		  return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
+		});
+	  }
 }
 
 function main() {
-	const boardSize = document.getElementById('board_size');
 
 	let callbacks = {
 		'wait': (id) => {
@@ -82,7 +103,7 @@ function main() {
 			console.log('Have peer connect to: ' + PeerID2URL(id));
 		},
 		'mst_connected': () => {
-			let size = parseInt(boardSize.value);
+			let size = getSelectedBoardSize();
 			comm.send('Start', size)
 			console.log('Peer connected');
 			fsm('CONNECTED');
@@ -118,7 +139,7 @@ function main() {
 		fsm('ONLINE');
 	}
 	playLocalEl.onclick = function () {
-		setup(parseInt(boardSize.value), false, 'black');
+		setup(getSelectedBoardSize(), false, 'black');
 		fsm('LOCAL');
 	}
 
