@@ -5,7 +5,7 @@
 	<meta charset="UTF-8">
 	<title>Go</title>
 	<link href="style.css" rel="stylesheet">
-	<script src="https://unpkg.com/peerjs@1.0.0/dist/peerjs.min.js" defer></script>
+	<script src="lib/peerjs/peerjs.min.js" defer></script>
 	<script src="lib/weiqijs/weiqi.js" defer></script>
 	<script type="module" src="js/app.js" defer></script>
 </head>
@@ -54,10 +54,15 @@
 		<div id="show_url" class="modal">
 			<div class="modal_border">
 				<h2>Share this link with a friend:</h2>
-				<div class="input_area">
-					<div id="share_url" class="info"></div>
-					<a id="copy_btn" role="button" href="#">Copy</a>
-				</div>
+				<div id="peer-id" style="display: none">
+					<div class="input_area">
+						<div id="share_url" class="info"></div>
+						<a id="copy_btn" role="button" href="#">Copy</a>
+					</div>
+				</div>	
+				<p id="peer-server-connecting">
+					Trying to connect to PeerJS server...
+				</p>
 			</div>
 		</div>
 		<div id="wait_for_connection" class="modal">
