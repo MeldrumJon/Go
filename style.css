@@ -214,12 +214,32 @@ a.big_button:active {
 	border: 2px #F7C331 solid;
 }
 
+#results {
+	min-width: 250px;
+}
+
+#result_msg {
+	margin-bottom: 0.65rem;
+	line-height: 1.5;
+	text-align: center;
+}
+
+.continue_area {
+	text-align: right;
+}
 
 /* When to hide the shade */
 body.game #shade {
 	transition: opacity linear 0.5s;
 	z-index: -20;
 	opacity: 0;
+}
+
+body.results #shade {
+	/* Show Shade Normally */
+	transition: opacity linear 0.5s;
+	opacity: 1;
+	z-index: 10;
 }
 
 #wrap {
@@ -233,7 +253,8 @@ body.disconnected #wrap {
 body.online_or_local #online_or_local,
 body.show_url #show_url,
 body.wait_for_connection #wait_for_connection,
-body.disconnected #disconnected { /* Show popup windows */
+body.disconnected #disconnected,
+body.results #results { /* Show popup windows */
 	/* Show windows by opacity transition alone */
 	transition: opacity 0.25s linear 0s;
 	z-index: 20;

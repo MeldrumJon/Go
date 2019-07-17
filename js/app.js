@@ -13,6 +13,13 @@ function logBoard(weiqiArr, size) {
 	return str;
 }
 
+function modal_alert(message) {
+	const body = document.getElementsByTagName("BODY")[0];
+	body.className += ' results';
+	const msgEl = document.getElementById('result_msg');
+	msgEl.innerHTML = message;
+  }
+
 /**
  * Gets the peer ID we want to connect to from the URL.
  */
@@ -62,10 +69,12 @@ function setup(size, online = 'false', player = 'black') {
 		onGameOver: () => {
 			let score = board.score();
 			turnArea.innerHTML = 'Black: ' + score.black + '. White: ' + score.white + '.';
-			alert(
-				'Black: ' + score.black + '\n' 
-				+ 'White: ' + score.white
-			);
+			let msg;
+			if (score.black > score.white) { msg = 'Black wins!'; }
+			else if (score.white > score.black) { msg = 'White wins!'; }
+			else { msg = 'Draw!'; }
+			msg += '<br/>(Black: ' + score.black + '. White: ' + score.white + '.)';
+			modal_alert(msg);
 		}
 	}
 	board = new Board(container, size, callbacks, online, player);
@@ -159,6 +168,13 @@ function main() {
 	copyBtn.onclick = function () {
 		window.getSelection().selectAllChildren(shareURL);
 		document.execCommand('copy');
+	}
+
+	/*** Show/Hide Results ***/
+	const closeResults = document.getElementById('close_result');
+	closeResults.onclick = function () {
+	  const body = document.getElementsByTagName("BODY")[0];
+	  body.classList.remove('results');
 	}
 }
 main();
