@@ -2,6 +2,15 @@
 
 Play the ancient Chinese board game [Go](https://en.wikipedia.org/wiki/Go_(game)). Built using a [modified version](https://github.com/MeldrumJon/weiqi.js) of [weiqi.js](https://github.com/cjlarose/weiqi.js).  Added the ability to play against players across the internet using [PeerJS](https://github.com/peers/peerjs).
 
+## Testing Locally
+
+1. Install [Node's](https://nodejs.org/en/) http-server package:
+```
+sudo npm install http-server -g
+```
+2. Run `http-server -c-1 [path]` where `[path]` points to this folder.
+3. Open localhost:8080 in the browser.
+
 ## Aesthetics
 
 Wood texture based on [JCW's Wood texture at OpenGameArt.com](https://opengameart.org/content/wood-texture-tiles).
