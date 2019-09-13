@@ -17,5 +17,4 @@ Wood texture based on [JCW's Wood texture at OpenGameArt.com](https://opengamear
 
 ## License
 
-[PeerJS](https://github.com/peers/peerjs) is licensed under the 
-[MIT license](https://tldrlegal.com/license/mit-license). [Weiqi.js](https://github.com/cjlarose/weiqi.js) is licensed under the [ISC license](https://github.com/cjlarose/weiqi.js/blob/master/LICENSE-ISC.txt). This project's source code is licensed under [MIT license](./LICENSE). Images in the `res` directory are licensed under the [Creative Commons 0 License](https://creativecommons.org/publicdomain/zero/1.0/).
+This project's source code is licensed under [MIT license](./LICENSE). Images in the `res` directory are licensed under the [Creative Commons 0 License](https://creativecommons.org/publicdomain/zero/1.0/). [PeerJS](https://github.com/peers/peerjs) is licensed under the [MIT license](https://tldrlegal.com/license/mit-license). [Weiqi.js](https://github.com/cjlarose/weiqi.js) is licensed under the [ISC license](https://github.com/cjlarose/weiqi.js/blob/master/LICENSE-ISC.txt).
