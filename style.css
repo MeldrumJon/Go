@@ -1,263 +1,301 @@
+/* Elements */
 * {
 	margin: 0;
 	padding: 0;
 }
+html, body {
+	height: 100%;
+}
 
 body {
-	font: normal normal normal 16px/1 "Palatino Linotype", "Book Antiqua", Palatino, serif;
-	color: #000;
 	background: #fff;
-}
-
-#top_options {
-	margin: 0.8rem 0;
-	display: flex;
-	flex-direction: row;
-}
-#top_options .left_area {
-	text-align: left;
-	flex:1;
-}
-#top_options .right_area {
-	text-align: right;
-	flex: 1;
-}
-#top_options h1 {
-	font-size: 1.1rem;
-	text-align: center;
-}
-
-#bottom_options {
-	margin-top: 1rem;
-	display: flex;
-}
-#bottom_options .left_area {
-	flex: 1;
-	text-align: left;
-}
-#bottom_options .right_area {
-	flex: 1;
-	text-align: right;
-}
-
-#wrap {
-	width: fit-content;
-	margin: 0 auto;
-	text-align: center;
-}
-
-#turn_area {
-	text-align: left;
-	padding: 0.4em 0;
-}
-
-#game {
-	background-color: #DCC7AA;
-	background-image: url('res/wood.png');
-	background-repeat: repeat;
-	border: 1px solid #777;
-	box-shadow: rgba(0, 0, 0, 0.3) 0.5px 1px 2px;
-	line-height: 0;
-}
-
-#board {
-	display: inline-block;
-	position: relative;
-}
-
-
-
-#shade {
-	transition: opacity linear 0.5s;
-	background: rgba(0, 0, 0, 0.3);
-	position: fixed; /* Relative to view port (If user scrolls, we want the window to still be centered) */
-	top: 0;
-	bottom: 0;
-	right: 0;
-	left: 0;
-	/* Show Shade Normally */
-	opacity: 1;
-	z-index: 10;
-
-}
-
-.modal {
-	/* padding: 0.4rem; */
-	transition: opacity 0.25s linear 0s;
-	position: absolute;
-	left: 50%;
-	transform: translate(-50%, -50%);
-	background: #fff;
-	box-shadow: rgba(0, 0, 0, 0.3) 7px 7px 12px;
-	/* Hide modal windows normally */
-	z-index: -10;
-	opacity: 0;
-	top: -50%;
-}
-
-.modal_border {
-	border: #333 1px solid;
-	padding: 1rem;
+	font: 100%/1 Verdana, Geneva, sans-serif;
 }
 
 h2 {
-	font-size: 1.5rem;
-	color:#333;
-	border-bottom: #777 1px solid;
-	margin: 1.3rem 0;
-	padding: 0 0em 0.4rem 0;
+	font: 1.8rem/1 Georgia, "Times New Roman", Times, serif;
+	text-align: center;
+	letter-spacing: 0.02em;
+	margin: 1.6rem 0 1rem 0;
+	color: #41372e
 }
 h2:first-child {
-	margin: 0 0 1.3rem 0;
+	margin-top: 0;
 }
-
-.switch-field {
-	overflow: hidden;
-	text-align: center
-}
-
-.switch-field input {
-	position: absolute !important;
-	clip: rect(0, 0, 0, 0);
-	height: 1px;
-	width: 1px;
-	border: 0;
-	overflow: hidden;
-}
-
-.switch-field label {
-	display: inline-block;
-	background: #6B7A8F;
-	color: #fff;
-	font-size: 1.2rem;
-	text-align: center;
-	font-weight: bold;
-	text-decoration: none;
-	padding: 0.4em;
-	margin: 0 1rem;
-	border: 2px #6B7A8F solid;
-}
-
-.switch-field label:hover {
-	cursor: pointer;
-	background:#6B7A8F;
-	border: 2px #F7C331 solid;
-}
-
-.switch-field input:checked + label {
-	background:#F7882F;
-	border: 2px #F7882F solid;
-}
-
-#choice_area{
-	text-align: center;
-}
-
-.or_sep {
-	text-transform: lowercase;
-	margin: 0 1.5rem;
-	vertical-align: middle;
-	display: inline-block;
-}
-
-a.big_button {
-	display: inline-block;
-	vertical-align: middle;
-	font-size: 1.2rem;
-	text-align: center;
-	font-weight: bold;
-	text-decoration: none;
-	padding: 0.4em;
-	margin-top: 0.2em;
-	background: #6B7A8F;
-	color: #fff;
-	border: 2px #6B7A8F solid;
-}
-a.big_button:hover {
-	background:#F7882F;
-	border: 2px #F7882F solid;
-}
-a.big_button:active {
-	border: 2px #F7C331 solid;
-}
-
-.modal .input_area {
-	display: flex;
-}
-.modal .input_area .info {
-	flex: 1;
-	padding: 0.5rem;
-	font-size: 1rem;
-	border: solid 1px #777;
-	border-right: none;
-	text-align: center;
-}
-.modal .input_area a {
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	line-height: 1;
-	padding: 0.2rem 1rem;
-	font-size: 1.2rem;
-	border: none;
-	background: #6B7A8F;
-	color: #fff;
-	border: 2px #6B7A8F solid;
-	font-weight: bold;
-	text-decoration: none;
-}
-.modal .input_area a:hover {
-	background:#F7882F;
-	border: 2px #F7882F solid;
-}
-.modal .input_area a:active {
-	border: 2px #F7C331 solid;
-}
-
-#results {
-	min-width: 250px;
-}
-
-#result_msg {
-	margin-bottom: 0.65rem;
+p {
 	line-height: 1.5;
-	text-align: center;
+	margin-bottom: 1rem;
+}
+p:last-child {
+	margin-bottom: 0;
+}
+button {
+	display: inline-block;
+	margin: 0.3rem;
+	padding: 0.7rem 0.8rem;
+	font: bold 0.8rem/1 "Lucida Grande", "Lucida Sans Unicode", "Trebuchet MS", Helvetica, sans-serif;
+	background: #fff;
+	color: #333;
+	outline: none;
+	border: 1px solid #aaa;
+	border-radius: 1px;
+}
+button:hover {
+	border-color: #BC0E29;
+	background: #BC0E29;
+	color: #fff;
+	cursor: pointer;
+}
+button:active {
+	border-color: #fff;
 }
 
-.continue_area {
+input[type='radio'] + label {
+	display: inline-block;
+	margin: 0.3rem;
+	padding: 0.7rem 0.8rem;
+	font: bold 0.8rem/1 "Lucida Grande", "Lucida Sans Unicode", "Trebuchet MS", Helvetica, sans-serif;
+	background: #fff;
+	color: #333;
+	outline: none;
+	border: 1px solid #aaa;
+	border-radius: 1px;
+}
+input[type='radio'] + label:hover {
+	color: #BC0E29;
+	cursor: pointer;
+}
+input[type='radio']:checked + label {
+	color: #BC0E29;
+	border-color: #BC0E29;
+}
+input[type='radio'] {
+	display: none;
+}
+
+/* Sidebars */
+
+button.sidebtn {
+	font: bold 0.8rem/1.6rem "Lucida Grande", "Lucida Sans Unicode", "Trebuchet MS", Helvetica, sans-serif;	
+	display: block;
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	z-index: 6;
+	background: transparent;
+	color: #333;
+	border: none;
+}
+button.sidebtn span {
+	border-bottom: 1px solid #aaa;
+}
+button.sidebtn:hover {
+	color: #BC0E29;
+}
+
+@media (orientation: portrait) {
+	button.sidebtn {
+		width: 100%;
+		text-align: center;
+	}
+	button.sidebtn.chat {
+		top: 0;
+	}
+	button.sidebtn.settings {
+		bottom: 0;
+	}
+}
+@media (orientation: landscape) {
+	button.sidebtn {
+		position: absolute;
+		top: 0;
+		height: 100%;
+	}
+	button.sidebtn span {
+		position: absolute;
+		width: 100vh;
+		transform-origin: top left;
+	}
+	#btnChat {
+		left: 0;
+	}
+	#btnChat span {
+		transform: rotate(-90deg) translate(-50vh, 0);
+	}
+	#btnSettings {
+		right: 0;
+	}
+	#btnSettings span {
+		transform: rotate(90deg) translate(-50vh, 0);
+	}
+}
+
+
+div.sidebar {
+	position: absolute;
+	z-index: 5;
+	background: #aaa;
+	color: #000;
+}
+
+@media (orientation: portrait) {
+	div.sidebar {
+		width: 100%;
+		max-height: 320px;
+	}
+	#chat {
+		top: 1.6rem;
+	}
+	#settings {
+		bottom: 1.6rem;
+	}
+}
+
+@media (orientation: landscape) {
+	div.sidebar {
+		top: 0;
+		height: 100%;
+		width: 320px;
+	}
+	#chat {
+		left: 1.6rem;
+	}
+	#settings {
+		right: 1.6rem;
+	}
+}
+
+
+#settings { display: none; }
+#settingsOpen { display: block; }
+#settingsClose { display: none; }
+#chat {display: none; }
+#chatOpen { display: block; }
+#chatClose { display: none; }
+
+body.settings #settings { display: block; }
+body.settings #settingsOpen { display: none; }
+body.settings #settingsClose { display: block; }
+body.chat #chat { display: block; }
+body.chat #chatOpen { display: none; }
+body.chat #chatClose { display: block; }
+
+/* Use pixels here to make things easier */
+#game {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	position: absolute;
+	z-index: 1;
 	text-align: right;
+	direction: rtl;
 }
 
-/* When to hide the shade */
-body.game #shade {
-	transition: opacity linear 0.5s;
-	z-index: -20;
+@media (orientation: portrait) {
+	#game {
+		top: 1.6rem;
+		bottom: 1.6rem;
+		left: 0.4rem;
+		right: 0.4rem;
+	}
+}
+@media (orientation: landscape) {
+	#game {
+		left: 1.6rem;
+		right: 1.6rem;
+		top: 0.4rem;
+		bottom: 0.4rem;
+	}
+	body.settings #game {
+		right: calc(1.6rem + 320px + 0.4rem);
+	}
+	body.chat #game {
+		left: calc(1.6rem + 320px + 0.4rem);
+	}
+}
+
+#btnPass {
+	display: inline-block;
+	vertical-align: top;
+	margin: 0 0 5px 5px;
+}
+#board {
+	display: inline-block;
+	vertical-align: top;
+	direction: ltr;
+	position: relative;
+	background: #DCC7AA url('res/wood.png') no-repeat;
+	border: 1px solid #777;
+	width: 487px;
+	height: 487px;
+	box-shadow: rgba(0, 0, 0, 0.3) 0.5px 1px 2px;
+	/*
+	max-width: 640px;
+	max-height: 640px;
+	*/
+}
+
+/* Modal */
+
+#shade {
+	position: absolute; /* Relative to view port (If user scrolls, we want the window to still be centered) */
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 10;
+	background: rgba(255, 255, 255, 0.98);
+	/* Hide Shade Normally */
+	visibility: hidden;
+	transition: all linear 0.5s;
 	opacity: 0;
 }
 
-body.results #shade {
-	/* Show Shade Normally */
-	transition: opacity linear 0.5s;
-	opacity: 1;
-	z-index: 10;
-}
-
-#wrap {
-	visibility: hidden;
-}
-body.game #wrap,
-body.disconnected #wrap {
+body.shade #shade {
 	visibility: visible;
+	transition: all linear 0.5s;
+	opacity: 1;
 }
 
-body.online_or_local #online_or_local,
-body.show_url #show_url,
-body.wait_for_connection #wait_for_connection,
-body.disconnected #disconnected,
-body.results #results { /* Show popup windows */
-	/* Show windows by opacity transition alone */
-	transition: opacity 0.25s linear 0s;
+.modal {
+	max-height: 100%;
+	padding: 0.5rem;
 	z-index: 20;
+	text-align: center;
+	/* Hide modal windows normally */
+	display: none;
+	opacity: 0;
+}
+
+body.mod_gameselect #mod_gameselect,
+body.mod_shareurl #mod_shareurl,
+body.mod_waiting #mod_waiting,
+body.mod_disconnected #mod_disconnected,
+body.mod_gameover #mod_gameover {
+	display: block;
 	opacity: 1;
-	top: 50%;
+	animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+	0% { opacity: 0; }
+	100% { opacity: 1; }
+}
+
+#peerShow {
+	display: flex;
+}
+#msgUrl {
+	flex: 1;
+	padding: 0.7rem;
+	border: 1px solid #aaa;
+	border-right: none;
+	font-size: 0.8rem;
+	line-height: 1;
+}
+#btnCopyUrl {
+	margin: 0;
 }
