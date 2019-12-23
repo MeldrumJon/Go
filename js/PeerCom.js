@@ -24,55 +24,55 @@ export default class PeerCom extends EventTarget {
      * @param {String} pId If given, the peer ID to connect to.
      */
     begin(pId=null) {
-	    console.log('Connecting to Peer server.');
-	    this.peerId = pId;
-	    this._peer = new Peer();
+        console.log('Connecting to Peer server.');
+        this.peerId = pId;
+        this._peer = new Peer();
 
         let onopen = function (id) {
-	    	console.log('Established connection to Peer server. My ID: ' + id);
-	    	if (pId) { // Connect to the peer.
-	    		console.log('Connecting to peer at ID: ' + pId);
-	    		onconnect(this._peer.connect(pId));
-	    	} else { // or wait for a connection
-	    		console.log('Waiting for connection from peer.')
+            console.log('Established connection to Peer server. My ID: ' + id);
+            if (pId) { // Connect to the peer.
+                console.log('Connecting to peer at ID: ' + pId);
+                onconnect(this._peer.connect(pId));
+            } else { // or wait for a connection
+                console.log('Waiting for connection from peer.')
                 this.dispatchEvent(new CustomEvent('wait', { detail: {'id': id} }));
-	    		this._peer.on('connection', onconnect);
-	    	}
+                this._peer.on('connection', onconnect);
+            }
         }.bind(this);
 
         let onconnect = function (conn) {
-	    	if (this._conn !== null) { throw new Error('A connection already exists.') }
-	    	this._conn = conn;
-	    	this._conn.on('open', onconnected);
-	    	this._conn.on('close', ondisconnected);
+            if (this._conn !== null) { throw new Error('A connection already exists.') }
+            this._conn = conn;
+            this._conn.on('open', onconnected);
+            this._conn.on('close', ondisconnected);
         }.bind(this);
 
-	    let onconnected = function () {
-	    	console.log('Connected to peer at ID: ' + this._conn.peer);
-	    	if (pId) {
+        let onconnected = function () {
+            console.log('Connected to peer at ID: ' + this._conn.peer);
+            if (pId) {
                 this.dispatchEvent(new Event('slaveconnected'));
-	    	} else {
+            } else {
                 this.dispatchEvent(new Event('masterconnected'));
-	    	}
+            }
 
-	    	this._conn.on('data', this._received.bind(this)); // Call received when we receive data.
-	    	this.peerId = this._conn.peer;
-	    	this.isConnected = true;
-	    	this._peer.disconnect(); // Don't allow any more connections
-	    }.bind(this);
+            this._conn.on('data', this._received.bind(this)); // Call received when we receive data.
+            this.peerId = this._conn.peer;
+            this.isConnected = true;
+        }.bind(this);
 
-	    let ondisconnected = function () {
-	    	console.log("Data connection has been closed.");
-	    	this.isConnected = false
+        let ondisconnected = function () {
+            console.log("Data connection has been closed.");
+            this.isConnected = false
             this.dispatchEvent(new Event('disconnected'));
-	    }.bind(this);
+            this._conn = null;
+        }.bind(this);
 
-	    this._peer.on('open', onopen);
+        this._peer.on('open', onopen);
     }
 
     disconnect() {
-        if (this._peer) { this._peer.disconnect(); }
         if (this._conn) { this._conn.close(); }
+        if (this._peer) { this._peer.disconnect(); }
     }
 
     /**
@@ -81,11 +81,11 @@ export default class PeerCom extends EventTarget {
      * (data received)
      */
     _received(obj) {
-    	let type = obj.type;
-    	let data = obj.data;
-    	if (this._receiveHandlers[type]) {
-    		this._receiveHandlers[type](data);
-    	}
+        let type = obj.type;
+        let data = obj.data;
+        if (this._receiveHandlers[type]) {
+            this._receiveHandlers[type](data);
+        }
     }
 
     /**
@@ -96,11 +96,11 @@ export default class PeerCom extends EventTarget {
      * The data is passed to fct as a parameter.
      */
     addReceiveHandler(type, fct) {
-    	this._receiveHandlers[type] = fct;
+        this._receiveHandlers[type] = fct;
     }
 
     removeReceiveHandler(type) {
-	    delete this._receiveHandlers[type];
+        delete this._receiveHandlers[type];
     }
 
 
@@ -110,11 +110,11 @@ export default class PeerCom extends EventTarget {
      * @param {*} data Data to send.
      */
     send(type, data) {
-    	if (!this._conn) { throw new Error('Connection not established!'); }
-    	this._conn.send({
-    	    'type': type,
-    		'data': data
-    	});
+        if (!this._conn) { throw new Error('Connection not established!'); }
+        this._conn.send({
+            'type': type,
+            'data': data
+        });
     }
 }
 

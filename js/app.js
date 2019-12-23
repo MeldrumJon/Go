@@ -1,4 +1,5 @@
 import * as notify from './notify.js';
+import * as storage from './storage.js';
 import PeerCom from './PeerCom.js';
 import GoBoard from './GoBoard.js';
 
@@ -11,6 +12,9 @@ const elBtnPass = document.getElementById('btnPass');
 
 const elBtnChat = document.getElementById('btnChat');
 const elBtnSettings = document.getElementById('btnSettings');
+
+const elSndPass = document.getElementById('sndPass');
+const elSndMove = document.getElementById('sndMove');
 
 // Forms
 const elRad9 = document.getElementById('rad9');
@@ -27,6 +31,16 @@ const elMsgResult = document.getElementById('msgResult');
 
 const elPeerShow = document.getElementById('peerShow');
 const elPeerWait = document.getElementById('peerWait');
+
+// Chat
+const elMessages = document.getElementById('bubbles');
+const elTxtMsg = document.getElementById('txtMsg');
+const elBtnSendMsg = document.getElementById('btnSendMsg');
+
+// Controls
+const elBtnUndo = document.getElementById('btnUndo');
+const elChkNotiSound = document.getElementById('chkNotiSound');
+const elChkNotiPush = document.getElementById('chkNotiPush');
 
 const MODALS = [
     'mod_gameselect',
@@ -56,6 +70,9 @@ let main = function () {
     let mstGridSize = 19; // default
     let peerCom = new PeerCom();
 
+    let moveNoti = null;
+    let msgNoti = null;
+
     let play = function (size, online=false, player='black') {
         let onmove = function (evt) {
             let move = evt.detail;
@@ -77,6 +94,16 @@ let main = function () {
                     let txt = board.isGameOver() ? 'Gameover!' : 'Your move!';
                     notify.flashTitle(txt);
                 }
+                if (board.playerTurn() !== player || board.isGameOver()) {
+                    elBtnPass.disabled = true;        
+                }
+                else {
+                    elBtnPass.disabled = false;
+                }
+            }
+            if (storage.getItem('notiSound') === 'enabled') {
+                if (move.pass) { notify.playSound(elSndPass); }
+                else { notify.playSound(elSndMove); }
             }
         }
         let ongameover = function (evt) {
@@ -100,12 +127,16 @@ let main = function () {
     
         board.addEventListener('move', onmove);
         board.addEventListener('gameover', ongameover);
+
+        if (online && board.playerTurn() !== player) {
+            elBtnPass.disabled = true;        
+        }
+
+        elBody.classList.add(online ? 'play_online' : 'play_local');
     }
 
     // DOM
     let resize = function () {
-        let winWidth = window.innerWidth;
-        let winHeight = window.innerHeight;
         let availWidth = elGame.clientWidth;
         let availHeight = elGame.clientHeight;
         let btnWidth = elBtnPass.clientWidth + 2*(2 + 5); // borders + margin + extra
@@ -130,8 +161,6 @@ let main = function () {
         else { // landscape
             size = availHeight;
 
-            console.log(btnWidth);
-
             if ((size + 2*btnWidth) < availWidth) {
                 elBoard.style.marginLeft = btnWidth + 'px';
             }
@@ -148,7 +177,9 @@ let main = function () {
         let sizestr = size + 'px';
         elBoard.style.width = sizestr;
         elBoard.style.height = sizestr;
+        elMessages.scrollTop = elMessages.scrollHeight;
 
+        if (board) { board.resize(); }
     };
     window.addEventListener('resize', resize);
     resize();
@@ -175,10 +206,13 @@ let main = function () {
         document.execCommand('copy');
     });
     elBtnPass.addEventListener('click', function () {
-        board.pass(board.player);
+        if (board) { board.pass(board.player); }
     });
     elBtnChat.addEventListener('click', function () {
         elBody.classList.toggle('chat');
+        if (elBody.classList.contains('chat')) {
+            elBody.classList.remove('unread');
+        }
         resize();
     });
     elBtnSettings.addEventListener('click', function () {
@@ -188,8 +222,81 @@ let main = function () {
     elBtnCloseGameover.addEventListener('click', function () {
         hideModals();
     });
+    elBtnSendMsg.addEventListener('click', function() {
+        let msg = elTxtMsg.value;
+        console.log(msg);
+        elTxtMsg.value = '';
+        if (msg.replace(/\s/g, '').length) {
+            peerCom.send('Message', msg);
+            let html = '';
+            html += '<div class="sent">';
+            html += '<span class="person">You</span>';
+            html += '<span class="content"><span>' + msg + '</span></span>';
+            html += '</div>';
+            elMessages.innerHTML += html;
+        }
+        elMessages.scrollTop = elMessages.scrollHeight;
+    });
+    elTxtMsg.addEventListener('keypress', function (evt) {
+        if (evt.keyCode === 13 && !evt.shiftKey) {
+            evt.preventDefault();
+            elBtnSendMsg.click();
+        }
+    });
+    elBtnUndo.addEventListener('click', function (evt) {
+        if (board) { board.undo(); }
+    });
+    elChkNotiSound.addEventListener('change', function(evt) {
+        if (elChkNotiSound.checked) {
+            storage.setItem('notiSound', 'enabled');
+        }
+        else {
+            storage.setItem('notiSound', 'disabled');
+        }
+    });
+    if (storage.getItem('notiSound') === 'enabled') {
+        elChkNotiSound.checked = true;
+    }
+    else {
+        elChkNotiSound.checked = false;
+    }
+    elChkNotiPush.addEventListener('change', function(evt) {
+        if (elChkNotiPush.checked && notify.pushStatus() !== 'granted') {
+            let callback = function (permission) {
+                if (permission === 'granted') {
+                    storage.setItem('notiPush', 'enabled');
+                }
+                else if (permission === 'denied') {
+                    elChkNotiPush.checked = false;
+                    elChkNotiPush.disabled = true;
+                }
+            };
+            notify.pushAsk(callback);
+        }
+        else {
+            if (elChkNotiPush.checked) {
+                storage.setItem('notiPush', 'enabled');
+
+            }
+            else {
+                storage.setItem('notiPush', 'disabled');
+            }
+        }
+    });
+    if (notify.pushStatus() === 'denied') { // disable
+        elChkNotiPush.checked = false;
+        elChkNotiPush.disabled = true;
+    }
+    else {
+        if (storage.getItem('notiPush') === 'enabled') {
+            elChkNotiPush.checked = true;
+        }
+        else {
+            elChkNotiPush.checked = false;
+        }
+    }
     window.addEventListener('beforeunload', function (evt) {
-        if (!board.online || board.isGameOver() || !peerCom.isConnected) {
+        if (!board || !board.online || board.isGameOver() || !peerCom.isConnected) {
             return undefined; // Game is not active
         }
         evt.preventDefault();
@@ -208,8 +315,8 @@ let main = function () {
         console.log('Have peer connect to: ' + peerUrl);
         elMsgUrl.innerHTML = peerUrl.href;
 
-        peerWait.style.display = 'none';
-        peerShow.style.display = 'flex';
+        peerWait.classList.toggle('hide');
+        peerShow.classList.toggle('hide');
     }
 
     let onmasterconnected = function () {
@@ -232,6 +339,26 @@ let main = function () {
     peerCom.addEventListener('slaveconnected', onslaveconnected);
     peerCom.addEventListener('disconnected', ondisconnected);
 
+    // Chat
+    peerCom.addReceiveHandler('Message', function(msg) {
+        let html = '';
+        html += '<div class="received">';
+        html += '<span class="person">Opponent</span>';
+        html += '<span class="content"><span>' + msg + '</span></span>';
+        html += '</div>';
+        elMessages.innerHTML += html;
+        elMessages.scrollTop = elMessages.scrollHeight;
+        if (!document.hasFocus()) {
+            if (storage.getItem('notiPush') === 'enabled') {
+                let noti = notify.pushNotify('New Message', 'Opponent: ' + msg);
+                window.setTimeout(noti.close.bind(noti), 5000);
+            }
+        }
+        if (!elBody.classList.contains('chat')) {
+            elBody.classList.add('unread');
+        }
+    });
+
     let peerId = new URLSearchParams(window.location.search).get('peerId');;
     if (peerId !== null) {
         peerCom.addReceiveHandler('Start', function (gridSize) {
@@ -244,13 +371,22 @@ let main = function () {
         peerCom.begin();
         showModal('mod_gameselect');
     }
+    let notiMove = null;
     peerCom.addReceiveHandler('Move', function (move) {
         if (move.pass) {
-            board.pass(move.color);
+            if (board) { board.pass(move.color); }
         }
         else {
-            board.play(move.color, move.x, move.y);
+            if (board) { board.play(move.color, move.x, move.y); }
         }
+        if (!document.hasFocus()) {
+            if (storage.getItem('notiPush') === 'enabled') {
+                notiMove = notify.pushNotify('Your Move');
+            }
+        }
+    });
+    window.addEventListener('focus', function(evt) {
+        if (notiMove) { notiMove.close(); }
     });
 
 }

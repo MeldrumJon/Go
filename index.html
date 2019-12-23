@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,64 +7,77 @@
 	<link href="style.css" rel="stylesheet">
 	<script src="lib/peerjs/peerjs.min.js" defer></script>
 	<script src="lib/weiqijs/weiqi.js" defer></script>
-	<script type="module" src="js/app.js" defer></script>
+	<script type="module" src="js/app.js"></script>
 </head>
 
-<body id="go_board_game" class="shade settings">
+<body id="go_board_game" class="shade">
 	<div class="sidebar" id="chat">
-		<div class="sidecontent">
-			This is a chat box.
-			<br/>
-			The quick brown fox jumped over the lazy dog.
-			<br/>
-			The lazy dog jumped over the quick brown fox.
+		<div class="messages">
+			<div id="bubbles" class="bubbles">
+			</div>
+			<div class="combo send">
+				<input type="text" id="txtMsg" class="stretch">
+				<button type="button" id="btnSendMsg">Send</button>
+			</div>
 		</div>
 	</div>
-	<button type="button" class="sidebtn chat" id="btnChat">
-		<span id="chatOpen">Open Chat</span>
-		<span id="chatClose">Close Chat</span>
+	<button type="button" class="sidebtn" id="btnChat">
+		<span>Chat</span>
 	</button>
 
 	<div id="game">
-		<div>
+		<div id="gameWrap">
 			<button type="button" id="btnPass">Pass</button>
 			<div id="board"></div>
 		</div>
 	</div>
 
-	<button type="button" class="sidebtn settings" id="btnSettings">
-		<span id="settingsOpen">Open Settings</span>
-		<span id="settingsClose">Close Settings</span>
+	<button type="button" class="sidebtn" id="btnSettings">
+		<span>Controls</span>
 	</button>
 	<div class="sidebar" id="settings">
-		<div class="sidecontent">
-			This is a chat box.
-			<br/>
-			The quick brown fox jumped over the lazy dog.
-			<br/>
-			The lazy dog jumped over the quick brown fox.
-		</div>
+		<fieldset id="optsGame">
+			<legend>Game</legend>
+			<button type="button" id="btnUndo">Undo</button>
+			<!--<div class="selgrp">
+				<label for="selSkill">Computer Skill:</label>
+				<select id="selSkill">
+					<option selected="" value="0">Beginner</option>
+					<option value="1">Amateur</option>
+					<option value="2">Professional</option>
+				</select>
+			</div>-->
+		</fieldset>
+		<fieldset>
+			<legend>Notifications</legend>
+			<input type="checkbox" id="chkNotiSound">
+			<label for="chkNotiSound"><span class="switch"><span class="slider"></span></span>Sound</label>
+			<input type="checkbox" id="chkNotiPush">
+			<label for="chkNotiPush"><span class="switch"><span class="slider"></span></span>Push Notifications</label>
+		</fieldset>
 	</div>
 
 	<div id="shade">
 		<div class="modal" id="mod_gameselect">
 			<h2>Board Size</h2>
-			<input type="radio" id="rad9" name="gridSize" value="9"/>
-			<label for="rad9"><span class="radlbl">9 x 9</span></label>
-			<input type="radio" id="rad13" name="gridSize" value="13"/>
-			<label for="rad13"><span class="radlbl">13 x 13</span></label>
-			<input type="radio" id="rad19" name="gridSize" value="19" checked/>
-			<label for="rad19"><span class="radlbl">19 x 19</span></label>
+			<div class="radiogrp">
+				<input type="radio" id="rad9" name="gridSize" value="9"/>
+				<label for="rad9">9 x 9</label>
+				<input type="radio" id="rad13" name="gridSize" value="13"/>
+				<label for="rad13">13 x 13</label>
+				<input type="radio" id="rad19" name="gridSize" value="19" checked/>
+				<label for="rad19">19 x 19</label>
+			</div>
 
 			<h2>Players</h2>
-			<button id="btnOnline">Human vs. Human (online)</button>
-			<button id="btnLocal">Human vs. Human (local)</button>
+			<button type="button" id="btnOnline">Human vs. Human (online)</button>
+			<button type="button" id="btnLocal">Human vs. Human (local)</button>
 		</div>
 		<div class="modal" id="mod_shareurl">
 			<h2>Connect</h2>
 			<p>Share this link with your opponent:</p>
-			<div id="peerShow" style="display:none">
-				<div id="msgUrl"></div>
+			<div id="peerShow" class="combo hide">
+				<div id="msgUrl" class="stretch"></div>
 				<button type="button" id="btnCopyUrl">Copy</button>
 			</div>	
 			<p id="peerWait">
@@ -85,6 +98,12 @@
 			<button type="button" id="btnCloseGameover">Close</button>
 		</div>
 	</div>
+
+	<div id="sounds" style="display:none"> <!-- Try to preload sounds -->
+		<audio preload="auto" controls="none" src="res/move.wav" id="sndMove"></audio>
+		<audio preload="auto" controls="none" src="res/pass.wav" id="sndPass"></audio>
+	</div>
+
 </body>
 
 </html>

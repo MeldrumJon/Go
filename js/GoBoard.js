@@ -1,81 +1,31 @@
-const VACANT_POINT_IMG = 'res/invis.png';
-const WHITE_STONE_IMG = 'res/white.svg';
-const BLACK_STONE_IMG = 'res/black.svg';
-const WHITE_SELECTED_IMG = 'res/white_selected.svg';
-const BLACK_SELECTED_IMG = 'res/black_selected.svg';
-
-const GUI_BOARD19 = {
-    image: 'res/board19x19.svg',
-    spacing: 25,
-    start_x: 18,
-    start_y: 18
-}
-
-const GUI_BOARD13 = {
-    image: 'res/board13x13.svg',
-    spacing: 37,
-    start_x: 21,
-    start_y: 21
-}
-
-const GUI_BOARD9 = {
-    image: 'res/board9x9.svg',
-    spacing: 50,
-    start_x: 42,
-    start_y: 42
-}
-
-function img_hoverstart(img, board, x, y) {
-    try {
-        Weiqi.play(board.game, board.player, [x, y]);
-    } catch {
-        return;
-    } // Don't display possible move if move is illegal.
-
-    img.src = (board.player === 'black') ? BLACK_STONE_IMG : WHITE_STONE_IMG;
-    img.style.opacity = 0.5;
-    img._isHovering = true;
-}
-
-function img_hoverend(img, board, x, y) {
-    if (img._isHovering === true) {
-        img.src = VACANT_POINT_IMG;
-        img.style.opacity = 1;
-        img._isHovering = false;
-    }
-}
-
-function img_click(img, board, x, y) {
-    img_hoverend(img, board, x, y);
-    board.play(board.player, x, y);
-}
+const NO_BG = 'none';
+const WHITE_STONE_BG = 'url("res/white.svg")';
+const BLACK_STONE_BG = 'url("res/black.svg")';
+const WHITE_SELECTED_BG = 'url("res/white_selected.svg")';
+const BLACK_SELECTED_BG = 'url("res/black_selected.svg")';
 
 export default class GoBoard extends EventTarget {
-    _redraw(latest_move) {
+    _draw(last_move) {
         let array = Weiqi.toArray(this.game);
         for (let j = 0; j < this.gridSize; ++j) {
             for (let i = 0; i < this.gridSize; ++i) {
-                this.points[i][j].style.opacity = 1;
-                if (array[i][j] === '.') {
-                    this.points[i][j].src = VACANT_POINT_IMG;
-                } else if (array[i][j] === 'x') {
-                    this.points[i][j].src = BLACK_STONE_IMG;
+                let bgImg = NO_BG;
+                let selImg = NO_BG;
+                if (array[i][j] === 'x') {
+                    bgImg = BLACK_STONE_BG;
+                    selImg = BLACK_SELECTED_BG;
                 } else if (array[i][j] === 'o') {
-                    this.points[i][j].src = WHITE_STONE_IMG;
+                    bgImg = WHITE_STONE_BG;
+                    selImg = WHITE_SELECTED_BG;
+                }
+                this.points[j][i].style.opacity = 1;
+                if (last_move && j === last_move.y && i === last_move.x) {
+                    this.points[j][i].style.backgroundImage = selImg;
+                }
+                else {
+                    this.points[j][i].style.backgroundImage = bgImg;
                 }
             }
-        }
-
-        if (!latest_move.pass) {
-            this.lastMove_img.style.top = this.gui.start_y - this.gui.spacing / 2 
-                    + this.gui.spacing * latest_move.y + 'px';
-            this.lastMove_img.style.left = this.gui.start_x - this.gui.spacing / 2 + 
-                    this.gui.spacing * latest_move.x + 'px';
-            this.lastMove_img.src = (latest_move.color === 'black') ? BLACK_SELECTED_IMG : WHITE_SELECTED_IMG;
-            this.lastMove_img.style.display = 'inline-block';
-        }
-        else {
-            this.lastMove_img.style.display = 'none';
         }
     }
 
@@ -88,58 +38,195 @@ export default class GoBoard extends EventTarget {
         this.game = Weiqi.createGame(this.gridSize);
         this.player = player;
         this.online = online;
+        this.element = element;
 
-        // GUI
-        this.gui = (gridSize === 9) ? GUI_BOARD9 : (gridSize === 13) ? GUI_BOARD13 : GUI_BOARD19;
-        element.style.backgroundImage = 'url(' + this.gui.image + ')'
+        this.movesList = [];
+        this.gamesPast = [];
 
-        this.points = new Array(gridSize);
-        for (let i = 0, len=this.points.length; i < len; ++i) {
-            this.points[i] = new Array(gridSize);
-        }
+        // Clear GUI
+        this.element.innerHTML = '';
 
-        let y = this.gui.start_y - this.gui.spacing / 2;
-        for (let j = 0; j < gridSize; ++j) {
-            let x = this.gui.start_x - this.gui.spacing / 2;
-            for (let i = 0; i < gridSize; ++i) {
-                let img = new Image(this.gui.spacing, this.gui.spacing);
-                img.src = VACANT_POINT_IMG;
-                img.style.position = 'absolute';
-                img.style.top = y + 'px';
-                img.style.left = x + 'px';
-
-                img.onclick = () => {
-                    img_click(img, this, i, j);
-                };
-                img.onmouseenter = () => {
-                    img_hoverstart(img, this, i, j);
-                }
-                img.onmouseleave = () => {
-                    img_hoverend(img, this, i, j);
-                }
-
-                this.points[i][j] = img;
-                element.append(img);
-
-                x += this.gui.spacing;
+        // Grid
+        let rowCells = this.gridSize-1;
+        let numCells = rowCells*rowCells;
+        this.table = document.createElement('table');
+        this.table.style.position = 'absolute';
+        this.table.style.borderCollapse = 'collapse';
+        this.table.style.borderSpacing = '0';
+        this.cells = [];
+        for (let j = 0; j < rowCells; ++j) {
+            let row = document.createElement('tr');
+            for (let i = 0; i < rowCells; ++i) {
+                let cell = document.createElement('td');
+                cell.style.border = '1px solid #000';
+                row.append(cell);
+                this.cells.push(cell);
             }
-            y += this.gui.spacing;
+            this.table.append(row);
+        }
+        this.element.append(this.table);
+
+        // Grid Markers
+        let center = ~~((gridSize-1)/2);
+        let dotoff = (this.gridSize === 9) ? 2 : 3;
+
+        let elDots = document.createElement('div');
+        this.dots = new Array(5);
+        for (let i = 0; i < 5; ++i) {
+            let dot = document.createElement('span');
+            dot.style.position = 'absolute';
+            dot.style.background = 'url("res/dot.svg") transparent center/100% no-repeat';
+            switch (i) {
+                case 0:
+                    dot.GoX = dotoff;
+                    dot.GoY = dotoff;
+                    break;
+                case 1:
+                    dot.GoX = this.gridSize-1 - dotoff;
+                    dot.GoY = dotoff;
+                    break;
+                case 2:
+                    dot.GoX = dotoff;
+                    dot.GoY = this.gridSize-1 - dotoff;
+                    break;
+                case 3:
+                    dot.GoX = this.gridSize-1 - dotoff;
+                    dot.GoY = this.gridSize-1 - dotoff;
+                    break;
+                case 4: // center
+                    dot.GoX = center;
+                    dot.GoY = center;
+                    break;
+            }
+            this.dots[i] = dot;
+            elDots.append(dot);
+        }
+        this.element.append(elDots);
+
+        // Pieces
+        let pointMouseEnter = function(evt) {
+            let point = evt.target;
+            let x = point.GoX;
+            let y = point.GoY;
+            try {
+                Weiqi.play(this.game, this.player, [x, y]);
+            } catch {
+                return; // Don't display possible move if move is illegal.
+            }
+
+            point.style.opacity = '0.5';
+            let bg = (this.player === 'black') ? BLACK_STONE_BG : WHITE_STONE_BG;
+            point.style.backgroundImage = bg;
+            point.GoHovering = true;
+        }.bind(this);
+        let pointMouseLeave = function(evt) {
+            let point = evt.target;
+            if (point.GoHovering) {
+                point.style.backgroundImage = NO_BG;
+                point.style.opacity = '1';
+                point.GoHovering = false;
+            }
+        }.bind(this);
+        let pointClick = function(evt) {
+            let point = evt.target;
+            pointMouseLeave(evt);
+            let x = point.GoX;
+            let y = point.GoY;
+            this.play(this.player, x, y);
+        }.bind(this);
+
+        let elPoints = document.createElement('div');
+        this.points = new Array(this.gridSize);
+        for (let j = 0; j < this.gridSize; ++j) {
+            this.points[j] = new Array(this.gridSize);
+            for (let i = 0; i < this.gridSize; ++i) {
+                let point = document.createElement('span');
+                point.style.position = 'absolute';
+                point.style.background = 'transparent center/100% no-repeat';
+                point.GoX = i;
+                point.GoY = j;
+                point.addEventListener('click', pointClick);
+                point.addEventListener('mouseenter', pointMouseEnter);
+                point.addEventListener('mouseleave', pointMouseLeave);
+                this.points[j][i] = point;
+                elPoints.append(point);
+            }
+        }
+        this.element.append(elPoints);
+
+        /*this.moveIndicator = document.createElement('span');
+        this.moveIndicator.style.position = 'absolute';
+        this.moveIndicator.style.background = 'transparent center/100% no-repeat';
+        this.element.append(this.moveIndicator);*/
+
+        this.resize();
+    }
+
+    resize() {
+        let width = this.element.clientWidth;
+        let rowCells = this.gridSize-1;
+        let spacing = ~~(width/(rowCells+1));
+        let cellWidth = spacing-1; // account for border
+
+        // Table
+        for (let i = 0, len = this.cells.length; i < len; ++i) {
+            let cell = this.cells[i];
+            cell.style.width = cellWidth + 'px';
+            cell.style.height = cellWidth + 'px';
+        }
+        let offset = ~~((width - this.table.clientWidth)/2); 
+        this.table.style.top = offset + 'px';
+        this.table.style.left = offset + 'px';
+
+        // Dots
+        let dotSize = ~~(cellWidth*0.30);
+        dotSize = (dotSize & 0x1) ? dotSize : dotSize + 1; // force odd
+        for (let i = 0; i < 5; ++i) {
+            let dot = this.dots[i];
+            dot.style.width = dotSize + 'px';
+            dot.style.height = dotSize + 'px';
+            let x = dot.GoX;
+            let y = dot.GoY;
+            dot.style.left = ~~(offset + spacing*x - dotSize/2 + 1) + 'px';
+            dot.style.top = ~~(offset + spacing*y - dotSize/2 + 1) + 'px';
         }
 
-        this.lastMove_img = new Image(this.gui.spacing, this.gui.spacing);
-        this.lastMove_img.src = BLACK_SELECTED_IMG;
-        this.lastMove_img.style.position = 'absolute';
-        this.lastMove_img.style.display = 'none';
-        element.append(this.lastMove_img);
+        // Points
+        offset = offset - spacing/2;
+        for (let j = 0; j < this.gridSize; ++j) {
+            for (let i = 0; i < this.gridSize; ++i) {
+                let point = this.points[j][i];
+                point.style.width = spacing + 'px';
+                point.style.height = spacing + 'px';
+                point.style.left = (offset + spacing*i) + 'px';
+                point.style.top = (offset + spacing*j) + 'px';
+            }
+        }
+
+        // Last move
+        /*this.moveIndicator.style.width = spacing + 'px';
+        this.moveIndicator.style.height = spacing + 'px';
+        if (this.lastMove && !this.lastMove.pass) {
+            this.moveIndicator.style.left = (offset+spacing*this.lastMove.x) + 'px';
+            this.moveIndicator.style.top = (offset+spacing*this.lastMove.y) + 'px';
+        }
+        else {
+            this.moveIndicator.style.left = '0';
+            this.moveIndicator.style.top = '0';
+        }*/
     }
 
     play(color, x, y) {
+        let g;
         try {
-            this.game = Weiqi.play(this.game, color, [x, y]);
+            g = Weiqi.play(this.game, color, [x, y]);
         } catch (err) {
             console.log(err);
             return;
         }
+
+        this.gamesPast.push(this.game);
+        this.game = g;
 
         let move = {
             color: color,
@@ -147,10 +234,11 @@ export default class GoBoard extends EventTarget {
             x: x,
             y: y,
         };
+        this.movesList.push(move);
     
-        this._redraw(move);
-
         this.dispatchEvent(new CustomEvent('move', { detail: move }));
+        this._draw(move);
+
         if (Weiqi.isOver(this.game)) {
             this.dispatchEvent(new Event('gameover'));
         }
@@ -161,21 +249,26 @@ export default class GoBoard extends EventTarget {
     }
 
     pass(color) {
+        let g;
         try {
-            this.game = Weiqi.pass(this.game, color);
+            g = Weiqi.pass(this.game, color);
         } catch (err) {
             console.log(err);
             return;
         }
 
+        this.gamesPast.push(this.game);
+        this.game = g;
+
         let move = {
             color: color,
             pass: true
         };
-
-        this._redraw(move);
+        this.movesList.push(move);
 
         this.dispatchEvent(new CustomEvent('move', { detail: move }));
+        this._draw(move);
+
         if (Weiqi.isOver(this.game)) {
             this.dispatchEvent(new Event('gameover'));
         }
@@ -189,6 +282,18 @@ export default class GoBoard extends EventTarget {
     isGameOver() { return Weiqi.isOver(this.game); }
 
     score() { return Weiqi.areaScore(this.game); }
+
+    undo() {
+        if (!this.online && this.gamesPast.length) {
+            this.game = this.gamesPast.pop();
+            this.player = (this.player === 'black') ? 'white' : 'black';
+            this._draw();
+        }
+    }
+
+    playerTurn() {
+        return this.game.get('currentPlayer');
+    }
 
     toString() {
         let arr = Weiqi.toArray(this.game);
