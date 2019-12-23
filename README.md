@@ -15,6 +15,8 @@ sudo npm install http-server -g
 
 Wood texture based on [JCW's Wood texture at OpenGameArt.com](https://opengameart.org/content/wood-texture-tiles).
 
+Move sound created from [KaterinaGalasova's board game sounds](https://freesound.org/people/KaterinaGalasova/sounds/461931/). Pass sound created from [sqeeeek's short bell sound](https://freesound.org/people/sqeeeek/sounds/237106/).
+  
 ## License
 
 This project's source code is licensed under [MIT license](./LICENSE). Images in the `res` directory are licensed under the [Creative Commons 0 License](https://creativecommons.org/publicdomain/zero/1.0/). [PeerJS](https://github.com/peers/peerjs) is licensed under the [MIT license](https://tldrlegal.com/license/mit-license). [Weiqi.js](https://github.com/cjlarose/weiqi.js) is licensed under the [ISC license](https://github.com/cjlarose/weiqi.js/blob/master/LICENSE-ISC.txt).
