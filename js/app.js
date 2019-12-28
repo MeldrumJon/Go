@@ -39,6 +39,7 @@ const elBtnSendMsg = document.getElementById('btnSendMsg');
 
 // Controls
 const elBtnUndo = document.getElementById('btnUndo');
+const elChkBoardSize = document.getElementById('chkBoardSize');
 const elChkNotiSound = document.getElementById('chkNotiSound');
 const elChkNotiPush = document.getElementById('chkNotiPush');
 
@@ -272,6 +273,35 @@ let main = function () {
     elBtnUndo.addEventListener('click', function (evt) {
         if (board) { board.undo(); }
     });
+    let limitBoardSize = function (size) {
+        if (size) {
+            elBoard.style.maxWidth = size + 'px';
+            elBoard.style.maxHeight = size + 'px';
+        }
+        else {
+            elBoard.style.maxWidth = '';
+            elBoard.style.maxHeight = '';
+        }
+        resize();
+    };
+    elChkBoardSize.addEventListener('change', function(evt) {
+        if (elChkBoardSize.checked) {
+            storage.setItem('boardSize', 'enabled');
+            limitBoardSize(640);
+        }
+        else {
+            storage.setItem('boardSize', 'disabled');
+            limitBoardSize(null);
+        }
+    });
+    if (storage.getItem('boardSize') === 'disabled') {
+        elChkBoardSize.checked = false;
+        limitBoardSize(null);
+    }
+    else {
+        elChkBoardSize.checked = true;
+        limitBoardSize(640);
+    }
     elChkNotiSound.addEventListener('change', function(evt) {
         if (elChkNotiSound.checked) {
             storage.setItem('notiSound', 'enabled');
