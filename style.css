@@ -510,7 +510,7 @@ body.play_online #optsGame {
 	justify-content: center;
 	align-items: center;
 	z-index: 100;
-	background: rgba(255, 255, 255, 0.98);
+	background:	#fff;
 	/* Hide Shade Normally */
 	visibility: hidden;
 	transition: all linear 0.5s;

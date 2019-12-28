@@ -66,15 +66,26 @@ let hideModals = function () {
 }
 
 let main = function () {
-    let board;
-    let mstGridSize = 19; // default
+    let peerId = new URLSearchParams(window.location.search).get('peerId');
     let peerCom = new PeerCom();
 
-    let moveNoti = null;
-    let msgNoti = null;
+    if (peerId !== null) {
+        console.log('I am slave');
+        peerCom.begin(peerId);
+        showModal('mod_waiting');
+    } else {
+        console.log('I am master');
+        peerCom.begin();
+        showModal('mod_gameselect');
+    }
 
-    let play = function (size, online=false, player='black') {
-        let onmove = function (evt) {
+    let board = null;
+    let uiGridSize = 19; // default
+
+    let play = function () {
+        console.log(board.gridSize + 'x' + board.gridSize);
+
+        let onmove = function (evt, skipSend=false) {
             let move = evt.detail;
             let str = '';
             if (move.color === 'white') {
@@ -86,15 +97,14 @@ let main = function () {
                 str += (move.pass) ? ' (black passed).' : '.';
             }
             notify.setTitle('Go • ' + str);
-            if (online) {
-                if (move.color === player) {
-                    peerCom.send('Move', move);
+            if (board.online) {
+                if (move.color === board.player) {
+                    if (!skipSend) { peerCom.send('Move', move); }
                 }
                 else {
-                    let txt = board.isGameOver() ? 'Gameover!' : 'Your move!';
-                    notify.flashTitle(txt);
+                    notify.flashTitle('Your move!');
                 }
-                if (board.playerTurn() !== player || board.isGameOver()) {
+                if (board.playerTurn() !== board.player) {
                     elBtnPass.disabled = true;        
                 }
                 else {
@@ -106,33 +116,48 @@ let main = function () {
                 else { notify.playSound(elSndMove); }
             }
         }
+
         let ongameover = function (evt) {
             let score = board.score();
             let msg = '';
             if (score.black > score.white) { msg = 'Black wins!'; }
             else if (score.white > score.black) { msg = 'White wins!'; }
             else { msg = 'Draw!'; }
+            notify.setTitle('Go • ' + msg);
             msg += '<br/>(Black: ' + score.black + '. White: ' + score.white + '.)';
+            
+            if (board.online) {
+                notify.flashTitle('Gameover!');
+            }
+            elBtnPass.disabled = true;        
+
             elMsgResult.innerHTML = msg;
             showModal('mod_gameover');
         }
 
-        if (board) { // Remove event listeners for last board.
-            board.removeEventListener('move', onmove);
-            board.removeEventListener('gameover', ongameover);
-        }
-
-        board = new GoBoard(elBoard, size, online, player);
-        console.log(size + 'x' + size);
-    
         board.addEventListener('move', onmove);
         board.addEventListener('gameover', ongameover);
 
-        if (online && board.playerTurn() !== player) {
+        // update title
+        let last_move = board.movesList[board.movesList.length-1];
+        if (board.isGameOver()) {
+            ongameover();
+        }
+        else if (last_move) {
+            onmove({detail: last_move}, true);
+        }
+        else if (board.playerTurn() === 'black') {
+            notify.setTitle('Go • ' + 'Black to move.');
+        }
+        else {
+            notify.setTitle('Go • ' + 'White to move.');
+        }
+
+        if (board.playerTurn() !== board.player || board.isGameOver()) {
             elBtnPass.disabled = true;        
         }
 
-        elBody.classList.add(online ? 'play_online' : 'play_local');
+        elBody.classList.add(board.online ? 'play_online' : 'play_local');
     }
 
     // DOM
@@ -185,7 +210,7 @@ let main = function () {
     resize();
 
     let sizeChange = function (evt) {
-        mstGridSize = parseInt(evt.target.value, 10);
+        uiGridSize = parseInt(evt.target.value, 10);
     };
     elRad9.addEventListener('change', sizeChange);
     elRad13.addEventListener('change', sizeChange);
@@ -195,7 +220,8 @@ let main = function () {
         showModal('mod_shareurl');
     });
     elBtnLocal.addEventListener('click', function () {
-        play(mstGridSize, false, 'black');
+        board = new GoBoard(elBoard, uiGridSize, false, 'black');
+        play();
         hideModals();
     });
     elMsgUrl.addEventListener('click', function () {
@@ -295,22 +321,11 @@ let main = function () {
             elChkNotiPush.checked = false;
         }
     }
-    window.addEventListener('beforeunload', function (evt) {
-        if (!board || !board.online || board.isGameOver() || !peerCom.isConnected) {
-            return undefined; // Game is not active
-        }
-        evt.preventDefault();
-        let msg = 'If you leave the page, you will be disconnected.';
-        evt.returnValue  = msg;
-        return msg;
-    });
-
 
     // Peer2Peer
     let onwait = function (evt) {
-        let id = evt.detail.id;
         let peerUrl = new URL(window.location.href);
-        peerUrl.searchParams.append('peerId', id);
+        peerUrl.searchParams.set('peerId', evt.detail);
 
         console.log('Have peer connect to: ' + peerUrl);
         elMsgUrl.innerHTML = peerUrl.href;
@@ -319,15 +334,28 @@ let main = function () {
         peerShow.classList.toggle('hide');
     }
 
-    let onmasterconnected = function () {
-        console.log('Peer connected');
-        peerCom.send('Start', mstGridSize)
-        play(mstGridSize, true, 'black');
-        hideModals();
-    }
+    let onconnectedpeer = function (evt) {
+        console.log('A peer connected');
 
-    let onslaveconnected = function () {
-        console.log('Peer connected');
+        if (!peerId) { // We are master!
+            board = new GoBoard(elBoard, uiGridSize, true, 'black');
+            play();
+            hideModals();
+        } // Else, we are slave
+
+        if (board) {
+            peerCom.send('Start', {
+                gridSize: board.gridSize,
+                player: (board.player === 'black') ? 'white' : 'black',
+                pastMoves: board.movesList
+            });
+        }
+
+        peerId = evt.detail;
+        // Append URL with peerId
+        let peerUrl = new URL(window.location.href);
+        peerUrl.searchParams.set('peerId', evt.detail);
+        window.history.pushState({ path: peerUrl.href }, '', peerUrl.href);
     }
 
     let ondisconnected = function () {
@@ -335,10 +363,42 @@ let main = function () {
         showModal('mod_disconnected');
     }
     peerCom.addEventListener('wait', onwait);
-    peerCom.addEventListener('masterconnected', onmasterconnected);
-    peerCom.addEventListener('slaveconnected', onslaveconnected);
+    peerCom.addEventListener('connectedpeer', onconnectedpeer);
     peerCom.addEventListener('disconnected', ondisconnected);
 
+    // Games Start / Reconnect
+    peerCom.addReceiveHandler('Start', function (obj) {
+        board = new GoBoard(elBoard, obj.gridSize, true, obj.player);
+        for (let i = 0, len = obj.pastMoves.length; i < len; ++i) {
+            let move = obj.pastMoves[i];
+            if (move.pass) {
+                board.pass(move.color);
+            }
+            else {
+                board.play(move.color, move.x, move.y);
+            }
+        }
+        hideModals();
+        play();
+    });
+    // Move
+    let notiMove = null;
+    peerCom.addReceiveHandler('Move', function (move) {
+        if (move.pass) {
+            if (board) { board.pass(move.color); }
+        }
+        else {
+            if (board) { board.play(move.color, move.x, move.y); }
+        }
+        if (!document.hasFocus()) {
+            if (storage.getItem('notiPush') === 'enabled') {
+                notiMove = notify.pushNotify('Your Move');
+            }
+        }
+    });
+    window.addEventListener('focus', function(evt) {
+        if (notiMove) { notiMove.close(); }
+    });
     // Chat
     peerCom.addReceiveHandler('Message', function(msg) {
         let html = '';
@@ -358,36 +418,5 @@ let main = function () {
             elBody.classList.add('unread');
         }
     });
-
-    let peerId = new URLSearchParams(window.location.search).get('peerId');;
-    if (peerId !== null) {
-        peerCom.addReceiveHandler('Start', function (gridSize) {
-            play(gridSize, true, 'white');
-            hideModals();
-        });
-        peerCom.begin(peerId);
-        showModal('mod_waiting');
-    } else {
-        peerCom.begin();
-        showModal('mod_gameselect');
-    }
-    let notiMove = null;
-    peerCom.addReceiveHandler('Move', function (move) {
-        if (move.pass) {
-            if (board) { board.pass(move.color); }
-        }
-        else {
-            if (board) { board.play(move.color, move.x, move.y); }
-        }
-        if (!document.hasFocus()) {
-            if (storage.getItem('notiPush') === 'enabled') {
-                notiMove = notify.pushNotify('Your Move');
-            }
-        }
-    });
-    window.addEventListener('focus', function(evt) {
-        if (notiMove) { notiMove.close(); }
-    });
-
 }
 main();

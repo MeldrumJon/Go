@@ -17,8 +17,8 @@ export default class PeerCom extends EventTarget {
      *
      * Several events may be dispatched while the peers are connecting/connected:
      * - wait
-     * - slaveconnected
-     * - masterconnected
+     * - connectedslave
+     * - connectedmaster
      * - disconnected
      * 
      * @param {String} pId If given, the peer ID to connect to.
@@ -28,6 +28,30 @@ export default class PeerCom extends EventTarget {
         this.peerId = pId;
         this._peer = new Peer();
 
+        let ondisconnected = function () {
+            console.log("Data connection has been closed.");
+            this.isConnected = false
+            this.dispatchEvent(new Event('disconnected'));
+            this._conn = null;
+            this.peerId = null;
+        }.bind(this);
+
+        let onconnected = function () {
+            console.log('Connected to peer at ID: ' + this._conn.peer);
+            this.dispatchEvent(new CustomEvent('connectedpeer', {
+                detail: this._conn.peer
+            }));
+            this._conn.on('data', this._received.bind(this)); // Call received when we receive data.
+            this.peerId = this._conn.peer;
+            this.isConnected = true;
+        }.bind(this);
+
+        let onconnect = function (conn) {
+            this._conn = conn;
+            this._conn.on('open', onconnected);
+            this._conn.on('close', ondisconnected);
+        }.bind(this);
+
         let onopen = function (id) {
             console.log('Established connection to Peer server. My ID: ' + id);
             if (pId) { // Connect to the peer.
@@ -35,36 +59,9 @@ export default class PeerCom extends EventTarget {
                 onconnect(this._peer.connect(pId));
             } else { // or wait for a connection
                 console.log('Waiting for connection from peer.')
-                this.dispatchEvent(new CustomEvent('wait', { detail: {'id': id} }));
-                this._peer.on('connection', onconnect);
+                this.dispatchEvent(new CustomEvent('wait', { detail: id }));
             }
-        }.bind(this);
-
-        let onconnect = function (conn) {
-            if (this._conn !== null) { throw new Error('A connection already exists.') }
-            this._conn = conn;
-            this._conn.on('open', onconnected);
-            this._conn.on('close', ondisconnected);
-        }.bind(this);
-
-        let onconnected = function () {
-            console.log('Connected to peer at ID: ' + this._conn.peer);
-            if (pId) {
-                this.dispatchEvent(new Event('slaveconnected'));
-            } else {
-                this.dispatchEvent(new Event('masterconnected'));
-            }
-
-            this._conn.on('data', this._received.bind(this)); // Call received when we receive data.
-            this.peerId = this._conn.peer;
-            this.isConnected = true;
-        }.bind(this);
-
-        let ondisconnected = function () {
-            console.log("Data connection has been closed.");
-            this.isConnected = false
-            this.dispatchEvent(new Event('disconnected'));
-            this._conn = null;
+            this._peer.on('connection', onconnect);
         }.bind(this);
 
         this._peer.on('open', onopen);
@@ -84,7 +81,10 @@ export default class PeerCom extends EventTarget {
         let type = obj.type;
         let data = obj.data;
         if (this._receiveHandlers[type]) {
-            this._receiveHandlers[type](data);
+            let handle = function () {
+                this._receiveHandlers[type](data)
+            }.bind(this);
+            window.setTimeout(handle, 0);
         }
     }
 

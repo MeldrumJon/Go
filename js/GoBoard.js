@@ -7,24 +7,29 @@ const BLACK_SELECTED_BG = 'url("res/black_selected.svg")';
 export default class GoBoard extends EventTarget {
     _draw(last_move) {
         let array = Weiqi.toArray(this.game);
+        if (last_move) { // first for perceived performance
+            let selImg = NO_BG;
+            if (array[last_move.x][last_move.y] === 'x') {
+                selImg = BLACK_SELECTED_BG;
+            } else if (array[last_move.x][last_move.y] === 'o') {
+                selImg = WHITE_SELECTED_BG;
+            }
+            this.points[last_move.y][last_move.x].style.opacity = 1;
+            this.points[last_move.y][last_move.x].style.backgroundImage = selImg;
+        }
         for (let j = 0; j < this.gridSize; ++j) {
             for (let i = 0; i < this.gridSize; ++i) {
+                if (last_move && last_move.x === i && last_move.y === j) {
+                    continue;
+                }
                 let bgImg = NO_BG;
-                let selImg = NO_BG;
                 if (array[i][j] === 'x') {
                     bgImg = BLACK_STONE_BG;
-                    selImg = BLACK_SELECTED_BG;
                 } else if (array[i][j] === 'o') {
                     bgImg = WHITE_STONE_BG;
-                    selImg = WHITE_SELECTED_BG;
                 }
                 this.points[j][i].style.opacity = 1;
-                if (last_move && j === last_move.y && i === last_move.x) {
-                    this.points[j][i].style.backgroundImage = selImg;
-                }
-                else {
-                    this.points[j][i].style.backgroundImage = bgImg;
-                }
+                this.points[j][i].style.backgroundImage = bgImg;
             }
         }
     }
@@ -129,7 +134,7 @@ export default class GoBoard extends EventTarget {
         }.bind(this);
         let pointClick = function(evt) {
             let point = evt.target;
-            pointMouseLeave(evt);
+            point.GoHovering = false;
             let x = point.GoX;
             let y = point.GoY;
             this.play(this.player, x, y);
@@ -153,11 +158,6 @@ export default class GoBoard extends EventTarget {
             }
         }
         this.element.append(elPoints);
-
-        /*this.moveIndicator = document.createElement('span');
-        this.moveIndicator.style.position = 'absolute';
-        this.moveIndicator.style.background = 'transparent center/100% no-repeat';
-        this.element.append(this.moveIndicator);*/
 
         this.resize();
     }
@@ -202,18 +202,6 @@ export default class GoBoard extends EventTarget {
                 point.style.top = (offset + spacing*j) + 'px';
             }
         }
-
-        // Last move
-        /*this.moveIndicator.style.width = spacing + 'px';
-        this.moveIndicator.style.height = spacing + 'px';
-        if (this.lastMove && !this.lastMove.pass) {
-            this.moveIndicator.style.left = (offset+spacing*this.lastMove.x) + 'px';
-            this.moveIndicator.style.top = (offset+spacing*this.lastMove.y) + 'px';
-        }
-        else {
-            this.moveIndicator.style.left = '0';
-            this.moveIndicator.style.top = '0';
-        }*/
     }
 
     play(color, x, y) {
@@ -225,19 +213,21 @@ export default class GoBoard extends EventTarget {
             return;
         }
 
-        this.gamesPast.push(this.game);
+        if (!this.online) {
+            this.gamesPast.push(this.game);
+        }
         this.game = g;
-
         let move = {
             color: color,
             pass: false,
             x: x,
             y: y,
         };
+        this._draw(move);
+
         this.movesList.push(move);
     
         this.dispatchEvent(new CustomEvent('move', { detail: move }));
-        this._draw(move);
 
         if (Weiqi.isOver(this.game)) {
             this.dispatchEvent(new Event('gameover'));
@@ -257,17 +247,19 @@ export default class GoBoard extends EventTarget {
             return;
         }
 
-        this.gamesPast.push(this.game);
+        if (!this.online) {
+            this.gamesPast.push(this.game);
+        }
         this.game = g;
-
         let move = {
             color: color,
             pass: true
         };
+        this._draw();
+
         this.movesList.push(move);
 
         this.dispatchEvent(new CustomEvent('move', { detail: move }));
-        this._draw(move);
 
         if (Weiqi.isOver(this.game)) {
             this.dispatchEvent(new Event('gameover'));
@@ -293,6 +285,10 @@ export default class GoBoard extends EventTarget {
 
     playerTurn() {
         return this.game.get('currentPlayer');
+    }
+
+    isMyTurn() {
+        return this.playerTurn() === this.player;
     }
 
     toString() {
