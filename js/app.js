@@ -66,6 +66,7 @@ let hideModals = function () {
     }
 }
 
+
 let main = function () {
     let peerId = new URLSearchParams(window.location.search).get('peerId');
     let peerCom = new PeerCom();
@@ -81,11 +82,10 @@ let main = function () {
     }
 
     let board = null;
-    let uiGridSize = 19; // default
 
-    let play = function () {
+    let start = function () {
         console.log(board.gridSize + 'x' + board.gridSize);
-
+    
         let onmove = function (evt, skipSend=false) {
             let move = evt.detail;
             let str = '';
@@ -117,7 +117,7 @@ let main = function () {
                 else { notify.playSound(elSndMove); }
             }
         }
-
+    
         let ongameover = function (evt) {
             let score = board.score();
             let msg = '';
@@ -131,15 +131,15 @@ let main = function () {
                 notify.flashTitle('Gameover!');
             }
             elBtnPass.disabled = true;        
-
+    
             elMsgResult.innerHTML = msg;
             showModal('mod_gameover');
         }
-
+    
         board.addEventListener('move', onmove);
         board.addEventListener('gameover', ongameover);
-
-        // update title
+    
+        // Update Modals/Titles if this game is continued after a refresh
         let last_move = board.movesList[board.movesList.length-1];
         if (board.isGameOver()) {
             ongameover();
@@ -153,11 +153,11 @@ let main = function () {
         else {
             notify.setTitle('Go • ' + 'White to move.');
         }
-
+    
         if (board.playerTurn() !== board.player || board.isGameOver()) {
             elBtnPass.disabled = true;        
         }
-
+    
         elBody.classList.add(board.online ? 'play_online' : 'play_local');
     }
 
@@ -208,33 +208,39 @@ let main = function () {
         if (board) { board.resize(); }
     };
     window.addEventListener('resize', resize);
-    resize();
+    //resize(); // Not necessary because of setBoardSize() below
 
+    let uiGridSize = 19;
     let sizeChange = function (evt) {
         uiGridSize = parseInt(evt.target.value, 10);
     };
     elRad9.addEventListener('change', sizeChange);
     elRad13.addEventListener('change', sizeChange);
     elRad19.addEventListener('change', sizeChange);
-    // DOM
+
     elBtnOnline.addEventListener('click', function () {
         showModal('mod_shareurl');
     });
+
     elBtnLocal.addEventListener('click', function () {
         board = new GoBoard(elBoard, uiGridSize, false, 'black');
-        play();
+        start();
         hideModals();
     });
+
     elMsgUrl.addEventListener('click', function () {
         window.getSelection().selectAllChildren(elMsgUrl);
     });
+
     elBtnCopyUrl.addEventListener('click', function () {
         window.getSelection().selectAllChildren(elMsgUrl);
         document.execCommand('copy');
     });
+
     elBtnPass.addEventListener('click', function () {
         if (board) { board.pass(board.player); }
     });
+
     elBtnChat.addEventListener('click', function () {
         elBody.classList.toggle('chat');
         if (elBody.classList.contains('chat')) {
@@ -242,13 +248,16 @@ let main = function () {
         }
         resize();
     });
+
     elBtnSettings.addEventListener('click', function () {
         elBody.classList.toggle('settings');
         resize();
     });
+
     elBtnCloseGameover.addEventListener('click', function () {
         hideModals();
     });
+
     elBtnSendMsg.addEventListener('click', function() {
         let msg = elTxtMsg.value;
         console.log(msg);
@@ -264,61 +273,46 @@ let main = function () {
         }
         elMessages.scrollTop = elMessages.scrollHeight;
     });
+
     elTxtMsg.addEventListener('keypress', function (evt) {
         if (evt.keyCode === 13 && !evt.shiftKey) {
             evt.preventDefault();
             elBtnSendMsg.click();
         }
     });
+
     elBtnUndo.addEventListener('click', function (evt) {
         if (board) { board.undo(); }
     });
-    let limitBoardSize = function (size) {
-        if (size) {
-            elBoard.style.maxWidth = size + 'px';
-            elBoard.style.maxHeight = size + 'px';
-        }
-        else {
+
+    let setBoardSize = function () {
+        if (storage.getItem('boardSize') === 'disabled') {
             elBoard.style.maxWidth = '';
             elBoard.style.maxHeight = '';
+        }
+        else {
+            elBoard.style.maxWidth = '640px';
+            elBoard.style.maxHeight = '640px';
         }
         resize();
     };
     elChkBoardSize.addEventListener('change', function(evt) {
-        if (elChkBoardSize.checked) {
-            storage.setItem('boardSize', 'enabled');
-            limitBoardSize(640);
-        }
-        else {
-            storage.setItem('boardSize', 'disabled');
-            limitBoardSize(null);
-        }
+        let status = elChkBoardSize.checked ? 'enabled' : 'disabled';
+        storage.setItem('boardSize', status);
+        setBoardSize();
     });
-    if (storage.getItem('boardSize') === 'disabled') {
-        elChkBoardSize.checked = false;
-        limitBoardSize(null);
-    }
-    else {
-        elChkBoardSize.checked = true;
-        limitBoardSize(640);
-    }
+    elChkBoardSize.checked = !(storage.getItem('boardSize') === 'disabled');
+    setBoardSize();
+
     elChkNotiSound.addEventListener('change', function(evt) {
-        if (elChkNotiSound.checked) {
-            storage.setItem('notiSound', 'enabled');
-        }
-        else {
-            storage.setItem('notiSound', 'disabled');
-        }
+        let status = elChkNotiSound.checked ? 'enabled' : 'disabled';
+        storage.setItem('notiSound', status);
     });
-    if (storage.getItem('notiSound') === 'enabled') {
-        elChkNotiSound.checked = true;
-    }
-    else {
-        elChkNotiSound.checked = false;
-    }
+    elChkNotiSound.checked = (storage.getItem('notiSound') === 'enabled');
+
     elChkNotiPush.addEventListener('change', function(evt) {
-        if (elChkNotiPush.checked && notify.pushStatus() !== 'granted') {
-            let callback = function (permission) {
+        if (notify.pushStatus() !== 'granted' && elChkNotiPush.checked) {
+            notify.pushAsk(function (permission) {
                 if (permission === 'granted') {
                     storage.setItem('notiPush', 'enabled');
                 }
@@ -326,17 +320,11 @@ let main = function () {
                     elChkNotiPush.checked = false;
                     elChkNotiPush.disabled = true;
                 }
-            };
-            notify.pushAsk(callback);
+            });
         }
         else {
-            if (elChkNotiPush.checked) {
-                storage.setItem('notiPush', 'enabled');
-
-            }
-            else {
-                storage.setItem('notiPush', 'disabled');
-            }
+            let status = elChkNotiPush.checked ? 'enabled' : 'disabled';
+            storage.setItem('notiPush', status);
         }
     });
     if (notify.pushStatus() === 'denied') { // disable
@@ -344,16 +332,11 @@ let main = function () {
         elChkNotiPush.disabled = true;
     }
     else {
-        if (storage.getItem('notiPush') === 'enabled') {
-            elChkNotiPush.checked = true;
-        }
-        else {
-            elChkNotiPush.checked = false;
-        }
+        elChkNotiPush.checked = (storage.getItem('notiPush') === 'enabled');
     }
 
     // Peer2Peer
-    let onwait = function (evt) {
+    peerCom.addEventListener('wait', function (evt) {
         let peerUrl = new URL(window.location.href);
         peerUrl.searchParams.set('peerId', evt.detail);
 
@@ -362,18 +345,19 @@ let main = function () {
 
         peerWait.classList.toggle('hide');
         peerShow.classList.toggle('hide');
-    }
+    });
 
-    let onconnectedpeer = function (evt) {
+    peerCom.addEventListener('connectedpeer', function (evt) {
         console.log('A peer connected');
 
-        if (!peerId) { // We are master!
+        if (!peerId) { // New game
             board = new GoBoard(elBoard, uiGridSize, true, 'black');
-            play();
+            start();
             hideModals();
-        } // Else, we are slave
+        }
+        peerId = evt.detail;
 
-        if (board) {
+        if (board) { // Send start signal to peer
             peerCom.send('Start', {
                 gridSize: board.gridSize,
                 player: (board.player === 'black') ? 'white' : 'black',
@@ -381,21 +365,18 @@ let main = function () {
             });
         }
 
-        peerId = evt.detail;
         // Append URL with peerId
         let peerUrl = new URL(window.location.href);
-        peerUrl.searchParams.set('peerId', evt.detail);
+        peerUrl.searchParams.set('peerId', peerId);
         window.history.pushState({ path: peerUrl.href }, '', peerUrl.href);
-    }
+    });
 
-    let ondisconnected = function () {
+    peerCom.addEventListener('disconnected', function () {
         console.log('Peer disconnected')
         showModal('mod_disconnected');
-    }
-    peerCom.addEventListener('wait', onwait);
-    peerCom.addEventListener('connectedpeer', onconnectedpeer);
-    peerCom.addEventListener('disconnected', ondisconnected);
+    });
 
+    // Peer2Peer Data
     // Games Start / Reconnect
     peerCom.addReceiveHandler('Start', function (obj) {
         board = new GoBoard(elBoard, obj.gridSize, true, obj.player);
@@ -409,8 +390,9 @@ let main = function () {
             }
         }
         hideModals();
-        play();
+        start();
     });
+
     // Move
     let notiMove = null;
     peerCom.addReceiveHandler('Move', function (move) {
@@ -429,6 +411,7 @@ let main = function () {
     window.addEventListener('focus', function(evt) {
         if (notiMove) { notiMove.close(); }
     });
+
     // Chat
     peerCom.addReceiveHandler('Message', function(msg) {
         let html = '';
@@ -449,4 +432,6 @@ let main = function () {
         }
     });
 }
+
 main();
+

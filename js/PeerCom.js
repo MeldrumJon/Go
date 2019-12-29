@@ -1,3 +1,7 @@
+let lastId = null;
+if (sessionStorage) {
+    lastId = sessionStorage.getItem('myId');
+}
 
 export default class PeerCom extends EventTarget {
     constructor() {
@@ -26,7 +30,12 @@ export default class PeerCom extends EventTarget {
     begin(pId=null) {
         console.log('Connecting to Peer server.');
         this.peerId = pId;
-        this._peer = new Peer();
+        if (lastId) {
+            this._peer = new Peer(lastId);
+        }
+        else {
+            this._peer = new Peer();
+        }
 
         let ondisconnected = function () {
             console.log("Data connection has been closed.");
@@ -54,6 +63,9 @@ export default class PeerCom extends EventTarget {
 
         let onopen = function (id) {
             console.log('Established connection to Peer server. My ID: ' + id);
+            if (sessionStorage) {
+                sessionStorage.setItem('myId', id);
+            }
             if (pId) { // Connect to the peer.
                 console.log('Connecting to peer at ID: ' + pId);
                 onconnect(this._peer.connect(pId));

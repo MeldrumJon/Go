@@ -32,6 +32,34 @@ export default class GoBoard extends EventTarget {
                 this.points[j][i].style.backgroundImage = bgImg;
             }
         }
+        // Still show indicator if mouse is hovering over playable point
+        if (this.hoveringPoint) {
+            this._hover(this.hoveringPoint);
+        }
+    }
+
+    _unhover(point) {
+        if (point.GoHoverIndicator) {
+            point.style.backgroundImage = NO_BG;
+            point.style.opacity = '1';
+            point.GoHoverIndicator = false;
+        }
+    }
+
+    _hover(point) {
+        this.hoveringPoint = point;
+        let x = point.GoX;
+        let y = point.GoY;
+        try {
+            Weiqi.play(this.game, this.player, [x, y]);
+        } catch {
+            this._unhover(point);
+            return; // Don't display possible move if move is illegal.
+        }
+        let bg = (this.player === 'black') ? BLACK_STONE_BG : WHITE_STONE_BG;
+        point.style.opacity = '0.5';
+        point.style.backgroundImage = bg;
+        point.GoHoverIndicator = true;
     }
 
     constructor(element, gridSize, online=true, player='black') {
@@ -47,6 +75,8 @@ export default class GoBoard extends EventTarget {
 
         this.movesList = [];
         this.gamesPast = [];
+
+        this.hoveringPoint = null;
 
         // Clear GUI
         this.element.innerHTML = '';
@@ -109,32 +139,18 @@ export default class GoBoard extends EventTarget {
         this.element.append(elDots);
 
         // Pieces
-        let pointMouseEnter = function(evt) {
+        let pointMouseMove = function(evt) {
             let point = evt.target;
-            let x = point.GoX;
-            let y = point.GoY;
-            try {
-                Weiqi.play(this.game, this.player, [x, y]);
-            } catch {
-                return; // Don't display possible move if move is illegal.
-            }
-
-            point.style.opacity = '0.5';
-            let bg = (this.player === 'black') ? BLACK_STONE_BG : WHITE_STONE_BG;
-            point.style.backgroundImage = bg;
-            point.GoHovering = true;
+            if (point === this.hoveringPoint) { return; } // already done
+            this._hover(point);
         }.bind(this);
         let pointMouseLeave = function(evt) {
-            let point = evt.target;
-            if (point.GoHovering) {
-                point.style.backgroundImage = NO_BG;
-                point.style.opacity = '1';
-                point.GoHovering = false;
-            }
+            this._unhover(this.hoveringPoint);
+            this.hoveringPoint = null;
         }.bind(this);
         let pointClick = function(evt) {
             let point = evt.target;
-            point.GoHovering = false;
+            point.GoHoverIndicator = false;
             let x = point.GoX;
             let y = point.GoY;
             this.play(this.player, x, y);
@@ -151,7 +167,7 @@ export default class GoBoard extends EventTarget {
                 point.GoX = i;
                 point.GoY = j;
                 point.addEventListener('click', pointClick);
-                point.addEventListener('mouseenter', pointMouseEnter);
+                point.addEventListener('mousemove', pointMouseMove);
                 point.addEventListener('mouseleave', pointMouseLeave);
                 this.points[j][i] = point;
                 elPoints.append(point);
@@ -209,32 +225,28 @@ export default class GoBoard extends EventTarget {
         try {
             g = Weiqi.play(this.game, color, [x, y]);
         } catch (err) {
-            console.log(err);
+            console.log(err.message);
             return;
         }
 
-        if (!this.online) {
-            this.gamesPast.push(this.game);
+        if (!this.online) { // Local game, change players
+            this.player = (this.player === 'black') ? 'white' : 'black';
+            this.gamesPast.push(this.game); // for undo
         }
         this.game = g;
+
         let move = {
             color: color,
             pass: false,
             x: x,
             y: y,
         };
-        this._draw(move);
-
         this.movesList.push(move);
+        this._draw(move);
     
         this.dispatchEvent(new CustomEvent('move', { detail: move }));
-
         if (Weiqi.isOver(this.game)) {
             this.dispatchEvent(new Event('gameover'));
-        }
-        
-        if (!this.online) { // alternate players
-            this.player = (this.player === 'black') ? 'white' : 'black';
         }
     }
 
@@ -247,28 +259,23 @@ export default class GoBoard extends EventTarget {
             return;
         }
 
-        if (!this.online) {
-            this.gamesPast.push(this.game);
+        if (!this.online) { // Local game, change players
+            this.player = (this.player === 'black') ? 'white' : 'black';
+            this.gamesPast.push(this.game); // for undo
         }
         this.game = g;
+
         let move = {
             color: color,
             pass: true
         };
+        this.movesList.push(move);
         this._draw();
 
-        this.movesList.push(move);
-
         this.dispatchEvent(new CustomEvent('move', { detail: move }));
-
         if (Weiqi.isOver(this.game)) {
             this.dispatchEvent(new Event('gameover'));
         }
-
-        if (!this.online) {
-            this.player = (this.player === 'black') ? 'white' : 'black';
-        }
-
     }
 
     isGameOver() { return Weiqi.isOver(this.game); }
@@ -287,10 +294,6 @@ export default class GoBoard extends EventTarget {
         return this.game.get('currentPlayer');
     }
 
-    isMyTurn() {
-        return this.playerTurn() === this.player;
-    }
-
     toString() {
         let arr = Weiqi.toArray(this.game);
         let str = '';
@@ -301,7 +304,6 @@ export default class GoBoard extends EventTarget {
             str = str + '\n';
         }
         return str;
-
     }
 }
 

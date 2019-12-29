@@ -32,7 +32,7 @@ export function pushAsk(callback) {
     function checkNotificationPromise() {
         try {
             Notification.requestPermission().then();
-        } catch(e) {
+        } catch {
             return false;
         }
         return true;
