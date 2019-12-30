@@ -86,6 +86,7 @@ export default class GoBoard extends EventTarget {
         let numCells = rowCells*rowCells;
         this.table = document.createElement('table');
         this.table.style.position = 'absolute';
+        this.table.style.tableLayout = 'fixed';
         this.table.style.borderCollapse = 'collapse';
         this.table.style.borderSpacing = '0';
         this.cells = [];
@@ -180,42 +181,52 @@ export default class GoBoard extends EventTarget {
 
     resize() {
         let width = this.element.clientWidth;
-        let rowCells = this.gridSize-1;
-        let spacing = ~~(width/(rowCells+1));
-        let cellWidth = spacing-1; // account for border
+        let height = this.element.clientHeight;
 
-        // Table
+        let cSize = ~~(width/(this.gridSize) - 1); // -1 account for border
+        let cSizeStr = cSize + 'px';
         for (let i = 0, len = this.cells.length; i < len; ++i) {
             let cell = this.cells[i];
-            cell.style.width = cellWidth + 'px';
-            cell.style.height = cellWidth + 'px';
+            cell.style.width = cSizeStr;
+            cell.style.height = cSizeStr;
         }
-        let offset = ~~((width - this.table.clientWidth)/2); 
-        this.table.style.top = offset + 'px';
-        this.table.style.left = offset + 'px';
+        let tOffTop = ~~((height - this.table.clientHeight)/2); 
+        let tOffLeft = ~~((width - this.table.clientWidth)/2); 
+        this.table.style.top = tOffTop + 'px';
+        this.table.style.left = tOffLeft + 'px';
+
+        let cWidth = (this.table.clientWidth-1)/(this.gridSize-1); // Use actual table cell width/height
+        let cHeight = (this.table.clientHeight-1)/(this.gridSize-1);
 
         // Dots
-        let dotSize = ~~(cellWidth*0.30);
-        dotSize = (dotSize & 0x1) ? dotSize : dotSize + 1; // force odd
+        let dSize = ~~(cWidth*0.30);
+        dSize = (dSize & 0x1) ? dSize : dSize + 1; // force odd
+        let dSizeStr = dSize + 'px';
+        let dOffTop = tOffTop - ~~(dSize/2);
+        let dOffLeft = tOffLeft - ~~(dSize/2);
         for (let i = 0; i < 5; ++i) {
             let dot = this.dots[i];
-            dot.style.width = dotSize + 'px';
-            dot.style.height = dotSize + 'px';
+            dot.style.width = dSizeStr;
+            dot.style.height = dSizeStr;
             let x = dot.GoX;
             let y = dot.GoY;
-            dot.style.left = ~~(offset + spacing*x - dotSize/2 + 1) + 'px';
-            dot.style.top = ~~(offset + spacing*y - dotSize/2 + 1) + 'px';
+            dot.style.top = (dOffTop + cHeight*y) + 'px';
+            dot.style.left = (dOffLeft + cWidth*x) + 'px';
         }
 
         // Points
-        offset = offset - spacing/2;
+        let pSize = ~~(cHeight);
+        pSize = (pSize & 1) ? pSize : pSize - 1; // force odd
+        let pSizeStr = pSize + 'px';
+        let pOffTop = tOffTop - ~~(pSize/2);
+        let pOffLeft = tOffLeft - ~~(pSize/2);
         for (let j = 0; j < this.gridSize; ++j) {
             for (let i = 0; i < this.gridSize; ++i) {
                 let point = this.points[j][i];
-                point.style.width = spacing + 'px';
-                point.style.height = spacing + 'px';
-                point.style.left = (offset + spacing*i) + 'px';
-                point.style.top = (offset + spacing*j) + 'px';
+                point.style.width = pSizeStr;
+                point.style.height = pSizeStr;
+                point.style.top = (pOffTop + cHeight*j) + 'px';
+                point.style.left = (pOffLeft + cWidth*i) + 'px';
             }
         }
     }

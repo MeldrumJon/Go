@@ -485,6 +485,7 @@ body.play_online #btnUndo {
 /* These should be duplicated in GoBoard.js */
 #board table {
 	position: absolute;
+	table-layout: fixed;
 	border-collapse: collapse;
 	border-spacing: 0;
 }
