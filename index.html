@@ -42,14 +42,14 @@
 			<input type="checkbox" id="chkBoardSize">
 			<label for="chkBoardSize"><span class="switch"><span class="slider"></span></span>Limit Width</label>
 			<button type="button" id="btnUndo">Undo</button>
-			<!--<div class="selgrp">
-				<label for="selSkill">Computer Skill:</label>
-				<select id="selSkill">
+			<div class="selgrp" id=selSideSkillGrp>
+				<label for="selSideSkill">Computer Skill:</label>
+				<select id="selSideSkill">
 					<option selected="" value="0">Beginner</option>
 					<option value="1">Amateur</option>
 					<option value="2">Professional</option>
 				</select>
-			</div>-->
+			</div>
 		</fieldset>
 		<fieldset>
 			<legend>Notifications</legend>
@@ -103,8 +103,8 @@
 	</div>
 
 	<div id="sounds" style="display:none"> <!-- Try to preload sounds -->
-		<audio preload="auto" controls="none" src="res/move.wav" id="sndMove"></audio>
-		<audio preload="auto" controls="none" src="res/pass.wav" id="sndPass"></audio>
+		<audio preload="auto" src="res/move.wav" id="sndMove"></audio>
+		<audio preload="auto" src="res/pass.wav" id="sndPass"></audio>
 	</div>
 
 </body>

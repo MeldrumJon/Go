@@ -404,6 +404,7 @@ let main = function () {
         }
         if (!document.hasFocus()) {
             if (storage.getItem('notiPush') === 'enabled') {
+                // TODO: check game over?
                 notiMove = notify.pushNotify('Your Move');
             }
         }
