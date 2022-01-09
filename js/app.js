@@ -353,7 +353,6 @@ let main = function () {
         if (!peerId) { // New game
             board = new GoBoard(elBoard, uiGridSize, true, 'black');
             start();
-            hideModals();
         }
         peerId = evt.detail;
 
@@ -364,6 +363,7 @@ let main = function () {
                 pastMoves: board.movesList
             });
         }
+        hideModals();
 
         // Append URL with peerId
         let peerUrl = new URL(window.location.href);
